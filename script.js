@@ -1,10 +1,13 @@
-// --- MANTENDO SUAS CONFIGURAÇÕES ORIGINAIS (Certifique-se que os dicionários estão aqui) ---
+// ========================================================
+// MANTENHA SEUS DICIONÁRIOS AQUI (satLinks, nfceLinks, etc)
+// ========================================================
+
 const bColar = document.getElementById("bColar");
 const echave = document.getElementById("chave");
 const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
 const universalLink2 = "https://meudanfe.com.br/#";
 
-// --- NOVA LÓGICA DE LEITURA DE IMAGEM (OCR) ---
+// --- LÓGICA DE LEITURA DE IMAGEM (OCR) CORRIGIDA ---
 const inputImagem = document.getElementById("inputImagem");
 const statusOcr = document.getElementById("statusOcr");
 
@@ -12,14 +15,12 @@ inputImagem.addEventListener("change", async (e) => {
     const arquivos = e.target.files;
     if (arquivos.length === 0) return;
 
-    statusOcr.textContent = "⏳ Carregando inteligência...";
+    statusOcr.textContent = "⏳ Inicializando leitor...";
     statusOcr.style.color = "blue";
 
     try {
-        // Criar o worker usando o CDN para os arquivos de dados (evita erro de permissão)
+        // Criar o Worker de forma limpa (o Tesseract v5 gerencia os caminhos sozinho)
         const worker = await Tesseract.createWorker('por', 1, {
-            workerPath: 'https://jsdelivr.net',
-            corePath: 'https://jsdelivr.net',
             logger: m => {
                 if (m.status === 'recognizing text') {
                     statusOcr.textContent = `⏳ Lendo nota: ${Math.round(m.progress * 100)}%`;
@@ -27,25 +28,28 @@ inputImagem.addEventListener("change", async (e) => {
             }
         });
 
+        // Executa o reconhecimento
         const { data: { text } } = await worker.recognize(arquivos[0]);
+        
+        // Finaliza o worker para não travar a memória do navegador
         await worker.terminate();
 
-        // Limpa tudo que não é número para encontrar a chave
+        // Processa o texto: remove espaços e busca 44 números seguidos
         const chaveLimpa = text.replace(/[^0-9]/g, ''); 
         const correspondencia = chaveLimpa.match(/\d{44}/);
 
         if (correspondencia) {
             echave.value = correspondencia[0];
-            statusOcr.textContent = "✅ Chave identificada!";
+            statusOcr.textContent = "✅ Chave encontrada!";
             statusOcr.style.color = "green";
-            verificar();
+            verificar(); // Chama sua função de validação
         } else {
-            statusOcr.textContent = "❌ Chave de 44 dígitos não encontrada na imagem.";
+            statusOcr.textContent = "❌ Chave de 44 dígitos não detectada.";
             statusOcr.style.color = "red";
         }
     } catch (erro) {
-        console.error(erro);
-        statusOcr.textContent = "⚠️ Erro ao acessar o leitor de imagem.";
+        console.error("Erro no OCR:", erro);
+        statusOcr.textContent = "⚠️ Erro técnico. Verifique sua conexão.";
         statusOcr.style.color = "red";
     }
 });
@@ -67,9 +71,11 @@ echave.addEventListener("input", () => {
 
 // --- LÓGICA DE VALIDAÇÃO E REDIRECIONAMENTO ---
 function verificar() {
-    // Reset visual
     const idsParaEsconder = ["link1", "link2", "botoes1", "botoes2", "mensagem", "resultado"];
-    idsParaEsconder.forEach(id => document.getElementById(id).style.display = "none");
+    idsParaEsconder.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = "none";
+    });
 
     let chave = echave.value.replace(/[^0-9]/g, '');
 
@@ -98,7 +104,6 @@ function verificar() {
         return;
     }
 
-    // Lógica de exibição por tipo de documento
     if (yy === "55") {
         exibirResultadoNfe(universalLink, universalLink2);
     } else if (yy === "59") {
@@ -106,11 +111,10 @@ function verificar() {
     } else if (yy === "65") {
         exibirResultadoSimples(nfceLinks[uf]);
     } else {
-        escreverMensage("Chave invalida. Tipo de documento (21º/22º) desconhecido.");
+        escreverMensage("Chave invalida. Tipo de documento desconhecido.");
         return;
     }
 
-    // Preenche os dados na tela
     document.getElementById("displayestado").textContent = estadoNomes[uf];
     document.getElementById("displaymes").textContent = mes;
     document.getElementById("displayano").textContent = "20" + ano;
@@ -140,6 +144,7 @@ function exibirResultadoNfe(url1, url2) {
 }
 
 function abrirEcopiar(url) {
+    if(!url || url === "#") return;
     let chave = echave.value.replace(/[^0-9]/g, '');
     navigator.clipboard.writeText(chave);
     window.open(url, '_blank');

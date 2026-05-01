@@ -15,12 +15,12 @@ inputImagem.addEventListener("change", async (e) => {
     const arquivos = e.target.files;
     if (arquivos.length === 0) return;
 
-    statusOcr.textContent = "⏳ Inicializando leitor...";
+    statusOcr.textContent = "⏳ Lendo nota... (pode demorar alguns segundos na primeira vez)";
     statusOcr.style.color = "blue";
 
     try {
-        // Criar o Worker de forma limpa (o Tesseract v5 gerencia os caminhos sozinho)
-        const worker = await Tesseract.createWorker('por', 1, {
+        // A forma mais direta e simples para evitar erros de permissão
+        const result = await Tesseract.recognize(arquivos[0], 'por', {
             logger: m => {
                 if (m.status === 'recognizing text') {
                     statusOcr.textContent = `⏳ Lendo nota: ${Math.round(m.progress * 100)}%`;
@@ -28,31 +28,29 @@ inputImagem.addEventListener("change", async (e) => {
             }
         });
 
-        // Executa o reconhecimento
-        const { data: { text } } = await worker.recognize(arquivos[0]);
+        const textoExtraido = result.data.text;
         
-        // Finaliza o worker para não travar a memória do navegador
-        await worker.terminate();
-
-        // Processa o texto: remove espaços e busca 44 números seguidos
-        const chaveLimpa = text.replace(/[^0-9]/g, ''); 
+        // Remove espaços e quebras de linha para não quebrar a chave
+        const chaveLimpa = textoExtraido.replace(/[^0-9]/g, ''); 
         const correspondencia = chaveLimpa.match(/\d{44}/);
 
         if (correspondencia) {
             echave.value = correspondencia[0];
-            statusOcr.textContent = "✅ Chave encontrada!";
+            statusOcr.textContent = "✅ Chave identificada!";
             statusOcr.style.color = "green";
-            verificar(); // Chama sua função de validação
+            verificar();
         } else {
-            statusOcr.textContent = "❌ Chave de 44 dígitos não detectada.";
+            statusOcr.textContent = "❌ Chave de 44 dígitos não encontrada na imagem.";
             statusOcr.style.color = "red";
         }
+
     } catch (erro) {
-        console.error("Erro no OCR:", erro);
-        statusOcr.textContent = "⚠️ Erro técnico. Verifique sua conexão.";
+        console.error("Erro detalhado:", erro);
+        statusOcr.textContent = "⚠️ Erro: Falha ao carregar motor de leitura.";
         statusOcr.style.color = "red";
     }
 });
+
 
 // --- FUNÇÃO DE COLAR ---
 bColar.onclick = async () => {

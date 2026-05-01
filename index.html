@@ -9,7 +9,7 @@
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
 <script type="module">
     // Usando esm.sh para evitar erros de CORS e carregar a biblioteca corretamente
-import { pipeline, env } from 'https://esm.sh';
+import { pipeline, env } from 'https://unpkg.com';
 // Isso ajuda a evitar que a biblioteca tente procurar arquivos localmente
 env.allowLocalModels = false;
 env.useBrowserCache = true; 

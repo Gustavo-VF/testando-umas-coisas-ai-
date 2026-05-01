@@ -8,12 +8,13 @@
 
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
 <script type="module">
-    // Trocamos o servidor de cdn.jsdelivr.net para unpkg.com
-    import { pipeline } from 'https://unpkg.com';
+    // Usamos o ESM.sh que resolve automaticamente os problemas de CORS do GitHub
+    import { pipeline } from 'https://esm.sh';
     
     async function carregarIA() {
         try {
-            console.log("🤖 Baixando modelo de IA...");
+            console.log("🤖 Iniciando IA...");
+            // O modelo Donut é excelente para notas fiscais
             const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
             
             window.perguntarIA = async (imagemUrl) => {
@@ -28,13 +29,14 @@
                 status.style.color = "green";
             }
         } catch (e) {
-            console.error("Falha ao carregar IA:", e);
+            console.error("Erro fatal na IA:", e);
             const status = document.getElementById("statusOcr");
-            if (status) status.textContent = "❌ Erro de conexão com o motor da IA.";
+            if (status) status.textContent = "❌ Falha crítica ao carregar motor.";
         }
     }
     carregarIA();
 </script>
+
 </head>
 <body>
     <div class="divPadrao" id="mensagem"></div>

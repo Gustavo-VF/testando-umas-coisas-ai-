@@ -1,65 +1,80 @@
 // ========================================================
 // MANTENHA SEUS DICIONÁRIOS AQUI (satLinks, nfceLinks, etc)
 const satLinks = {
-    "11": "https://sefaz.ro.gov.br",
-    "12": "https://sefaz.ac.gov.br",
-    "13": "https://sefaz.am.gov.br",
-    "14": "https://sefaz.rr.gov.br",
-    "15": "https://sefa.pa.gov.br",
-    "16": "https://sefaz.ap.gov.br",
-    "17": "http://sefaz.to.gov.br",
-    "21": "http://sefaz.ma.gov.br",
-    "22": "https://sefaz.pi.gov.br",
-    "23": "https://sefaz.ce.gov.br",
-    "24": "http://set.rn.gov.br",
-    "25": "https://sefaz.pb.gov.br",
-    "26": "http://sefaz.pe.gov.br",
-    "27": "https://sefaz.al.gov.br",
-    "28": "https://sefaz.se.gov.br",
-    "29": "http://sefaz.ba.gov.br",
-    "31": "http://fazenda.mg.gov.br",
-    "32": "http://sefaz.es.gov.br",
-    "33": "https://fazenda.rj.gov.br",
-    "35": "https://fazenda.sp.gov.br",
-    "41": "https://fazenda.pr.gov.br",
-    "42": "https://sef.sc.gov.br",
-    "43": "https://sefaz.rs.gov.br",
-    "50": "http://dfe.ms.gov.br",
-    "51": "https://sefaz.mt.gov.br",
-    "52": "https://www.go.gov.br",
-    "53": "https://fazenda.df.gov.br"
+    "11": "https://sistemas.sefaz.ro.gov.br/",
+    "12": "https://www.sefaz.ac.gov.br/sat/",
+    "13": "https://sistemas.sefaz.am.gov.br/nfceweb/formConsulta.do",
+    "14": "https://www.sefaz.rr.gov.br/nfc-e",
+    "15": "https://app.sefa.pa.gov.br/consulta-nfce/#/consulta",
+    "16": "https://www.sefaz.ap.gov.br/sate/seg/SEGf_AcessarFuncao.jsp?cdFuncao=FIS_1261",
+    "17": "http://www.sefaz.to.gov.br/nfce/consulta.jsf",
+    "21": "http://www.nfce.sefaz.ma.gov.br/portal/consultarnfce.jsp",
+    "22": "https://www.sefaz.pi.gov.br/nfce/qrcode",
+    "23": "https://cfe.sefaz.ce.gov.br/mfe/servicos#/cupom-fiscal",
+    "24": "http://nfce.set.rn.gov.br/consultarNFCe.aspx",
+    "25": "https://www.sefaz.pb.gov.br/servirtual/documentos-fiscais/nfc-e/consultar-nfc-e",
+    "26": "http://nfe.sefaz.pe.gov.br/nfe-web/consNfe",
+    "27": "https://nfce.sefaz.al.gov.br/consultaNFCe.htm",
+    "28": "https://nfce.sefaz.se.gov.br/portal/portalNoticias.jsp?jsp=barra-menu/servicos/consultaDANFENFCe.htm",
+    "29": "http://nfe.sefaz.ba.gov.br/servicos/nfce/Modulos/Geral/NFCEC_consulta_chave_acesso.aspx",
+    "31": "http://nfce.fazenda.mg.gov.br/portalnfce/sistema/consultaarg.xhtml",
+    "32": "http://app.sefaz.es.gov.br/ConsultaNFCe/Default.aspx",
+    "33": "https://consultadfe.fazenda.rj.gov.br/consultaDFe/paginas/consultaChaveAcesso.faces",
+    "35": "https://satsp.fazenda.sp.gov.br/COMSAT/Public/ConsultaPublica/ConsultaPublicaCfe.aspx",
+    "41": "https://sped.fazenda.pr.gov.br/NFCe/webservices/sped/nfce/completa",
+    "42": "https://sat.sef.sc.gov.br/tax.net/Sat.Dfe.NFCe.Web/Consultas/ConsultaPublicaNFCe.aspx",
+    "43": "https://www.sefaz.rs.gov.br/NFE/NFE-NFC.aspx",
+    "50": "http://www.dfe.ms.gov.br/nfce/consulta/",
+    "51": "https://www.sefaz.mt.gov.br/nfce/consultanfce",
+    "52": "https://www.go.gov.br/servicos/servico/consultar-nota-fiscal-eletronica-pela-chave-de-acesso",
+    "53": "https://ww1.receita.fazenda.df.gov.br/servicos"
 };
 
 const nfceLinks = {
-    "11": "https://sefin.ro.gov.br",
-    "12": "https://sefaznet.ac.gov.br",
-    "13": "https://sefaz.am.gov.br",
-    "14": "https://sefaz.rr.gov.br",
-    "15": "https://sefa.pa.gov.br",
-    "16": "https://sefaz.ap.gov.br",
-    "17": "http://sefaz.to.gov.br",
-    "21": "http://sefaz.ma.gov.br",
-    "22": "https://sefaz.pi.gov.br",
-    "23": "http://sefaz.ce.gov.br",
-    "24": "http://set.rn.gov.br",
-    "25": "https://sefaz.pb.gov.br",
-    "26": "https://sefaz.pe.gov.br",
-    "27": "https://sefaz.al.gov.br",
-    "28": "https://sefaz.se.gov.br",
-    "29": "http://sefaz.ba.gov.br",
-    "31": "http://fazenda.mg.gov.br",
-    "32": "http://sefaz.es.gov.br",
-    "33": "https://fazenda.rj.gov.br",
-    "35": "https://fazenda.sp.gov.br",
-    "41": "https://fazenda.pr.gov.br",
-    "42": "https://sef.sc.gov.br",
-    "43": "https://sefaz.rs.gov.br",
-    "50": "http://dfe.ms.gov.br",
-    "51": "http://sefaz.mt.gov.br",
-    "52": "http://sefaz.go.gov.br",
-    "53": "https://fazenda.df.gov.br"
+    "11": "https://www.nfce.sefin.ro.gov.br/",
+    "12": "https://www.sefaznet.ac.gov.br/nfce/consulta",
+    "13": "https://sistemas.sefaz.am.gov.br/nfceweb/formConsulta.do",
+    "14": "https://www.sefaz.rr.gov.br/nfce/servlet/wp_consulta_nfce",
+    "15": "https://app.sefa.pa.gov.br/consulta-nfce/#/consulta",
+    "16": "https://www.sefaz.ap.gov.br/sate/seg/SEGf_AcessarFuncao.jsp?cdFuncao=FIS_1261",
+    "17": "http://www.sefaz.to.gov.br/nfce/consulta.jsf",
+    "21": "http://www.nfce.sefaz.ma.gov.br/portal/consultarnfce.jsp",
+    "22": "https://www.sefaz.pi.gov.br/nfce/qrcode",
+    "23": "http://nfce.sefaz.ce.gov.br/pages/consultaNota.jsf",
+    "24": "http://nfce.set.rn.gov.br/consultarNFCe.aspx",
+    "25": "https://www.sefaz.pb.gov.br/servirtual/documentos-fiscais/nfc-e/consultar-nfc-e",
+    "26": "https://nfce.sefaz.pe.gov.br:444/nfce-web/consNfce",
+    "27": "https://nfce.sefaz.al.gov.br/consultaNFCe.htm",
+    "28": "https://nfce.sefaz.se.gov.br/portal/portalNoticias.jsp?jsp=barra-menu/servicos/consultaDANFENFCe.htm",
+    "29": "http://nfe.sefaz.ba.gov.br/servicos/nfce/default.aspx",
+    "31": "http://nfce.fazenda.mg.gov.br/portalnfce/sistema/consultaarg.xhtml",
+    "32": "http://app.sefaz.es.gov.br/ConsultaNFCe/Default.aspx",
+    "33": "https://consultadfe.fazenda.rj.gov.br/consultaDFe/paginas/consultaChaveAcesso.faces",
+    "35": "https://www.nfce.fazenda.sp.gov.br/NFCeConsultaPublica/Paginas/ConsultaPublica.aspx",
+    "41": "https://sped.fazenda.pr.gov.br/NFCe/webservices/sped/nfce/completa",
+    "42": "https://sat.sef.sc.gov.br/tax.net/Sat.Dfe.NFCe.Web/Consultas/ConsultaPublicaNFCe.aspx",
+    "43": "https://www.sefaz.rs.gov.br/NFE/NFE-NFC.aspx",
+    "50": "http://www.dfe.ms.gov.br/nfce/consulta/",
+    "51": "http://www.sefaz.mt.gov.br/nfce/consultanfce",
+    "52": "http://nfe.sefaz.go.gov.br/nfeweb/sites/nfe/consulta-completa",
+    "53": "https://ww1.receita.fazenda.df.gov.br/servicos"
 };
 
+
+const mesNome = {
+    "01": "Jan",
+    "02": "Fev",
+    "03": "Mar",
+    "04": "Abr",
+    "05": "Mai",
+    "06": "Jun",
+    "07": "Jul",
+    "08": "Ago",
+    "09": "Set",
+    "10": "Out",
+    "11": "Nov",
+    "12": "Dez"
+};
 const estadoNomes = {
     "11": "Rondônia",
     "12": "Acre",
@@ -90,34 +105,27 @@ const estadoNomes = {
     "53": "Distrito Federal"
 };
 
-const mesNome = {
-    "01": "Jan", "02": "Fev", "03": "Mar", "04": "Abr", "05": "Mai", "06": "Jun",
-    "07": "Jul", "08": "Ago", "09": "Set", "10": "Out", "11": "Nov", "12": "Dez"
-};
-
 // ========================================================
 
 const bColar = document.getElementById("bColar");
+const bColarImagem = document.getElementById("bColarImagem");
 const echave = document.getElementById("chave");
-const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
-const universalLink2 = "https://meudanfe.com.br/#";
-
-// --- LÓGICA DE LEITURA DE IMAGEM (OCR) CORRIGIDA ---
 const inputImagem = document.getElementById("inputImagem");
 const statusOcr = document.getElementById("statusOcr");
+const dropZone = document.getElementById("dropZone");
 
-inputImagem.addEventListener("change", async (e) => {
-    const arquivo = e.target.files[0];
+const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
+const universalLink2 = "https://meudanfe.com.br/#"
+
+// --- FUNÇÃO CENTRAL DE LEITURA DE IMAGEM ---
+async function lerNota(arquivo) {
     if (!arquivo) return;
-
     statusOcr.textContent = "⏳ Lendo imagem... aguarde.";
     statusOcr.style.color = "blue";
 
     try {
-        // Versão sem Worker (mais lenta, porém muito mais estável no GitHub Pages)
-        const { data: { text } } = await Tesseract.recognize(arquivo, 'por');
-
-        const chaveLimpa = text.replace(/[^0-9]/g, '');
+        const result = await Tesseract.recognize(arquivo, 'por');
+        const chaveLimpa = result.data.text.replace(/[^0-9]/g, '');
         const match = chaveLimpa.match(/\d{44}/);
 
         if (match) {
@@ -126,17 +134,53 @@ inputImagem.addEventListener("change", async (e) => {
             statusOcr.style.color = "green";
             verificar();
         } else {
-            statusOcr.textContent = "❌ Chave não encontrada na imagem.";
+            statusOcr.textContent = "❌ Chave de 44 dígitos não encontrada.";
             statusOcr.style.color = "red";
         }
     } catch (erro) {
         console.error(erro);
         statusOcr.textContent = "⚠️ Erro de carregamento da biblioteca.";
     }
+}
+
+// --- ARRASTAR E SOLTAR (DRAG & DROP) ---
+['dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
 });
 
+dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
 
-// --- FUNÇÃO DE COLAR ---
+dropZone.addEventListener('drop', (e) => {
+    dropZone.classList.remove('dragover');
+    const arquivo = e.dataTransfer.files[0];
+    lerNota(arquivo);
+});
+
+// --- BOTÃO COLAR IMAGEM ---
+bColarImagem.onclick = async () => {
+    try {
+        const itens = await navigator.clipboard.read();
+        for (const item of itens) {
+            if (item.types.some(type => type.startsWith('image/'))) {
+                const blob = await item.getType(item.types.find(t => t.startsWith('image/')));
+                lerNota(blob);
+                return;
+            }
+        }
+        alert("Nenhuma imagem encontrada na área de transferência.");
+    } catch (err) {
+        alert("Erro ao acessar clipboard. Tente Ctrl+V.");
+    }
+};
+
+// --- CLIQUE NO INPUT DE ARQUIVO ---
+inputImagem.addEventListener("change", (e) => lerNota(e.target.files[0]));
+
+// --- FUNÇÃO DE COLAR TEXTO ---
 bColar.onclick = async () => {
     try {
         const texto = await navigator.clipboard.readText();
@@ -147,9 +191,7 @@ bColar.onclick = async () => {
     }
 }
 
-echave.addEventListener("input", () => {
-    verificar();
-});
+echave.addEventListener("input", () => verificar());
 
 // --- LÓGICA DE VALIDAÇÃO E REDIRECIONAMENTO ---
 function verificar() {
@@ -162,7 +204,6 @@ function verificar() {
     let chave = echave.value.replace(/[^0-9]/g, '');
 
     if (chave.length < 44) return;
-
     if (chave.length > 44) {
         escreverMensage("Chave invalida. Verifique os dígitos.");
         return;

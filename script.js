@@ -12,42 +12,31 @@ const inputImagem = document.getElementById("inputImagem");
 const statusOcr = document.getElementById("statusOcr");
 
 inputImagem.addEventListener("change", async (e) => {
-    const arquivos = e.target.files;
-    if (arquivos.length === 0) return;
+    const arquivo = e.target.files[0];
+    if (!arquivo) return;
 
-    statusOcr.textContent = "⏳ Lendo nota... (pode demorar alguns segundos na primeira vez)";
+    statusOcr.textContent = "⏳ Lendo imagem... aguarde.";
     statusOcr.style.color = "blue";
 
     try {
-        // A forma mais direta e simples para evitar erros de permissão
-        const result = await Tesseract.recognize(arquivos[0], 'por', {
-            logger: m => {
-                if (m.status === 'recognizing text') {
-                    statusOcr.textContent = `⏳ Lendo nota: ${Math.round(m.progress * 100)}%`;
-                }
-            }
-        });
+        // Versão sem Worker (mais lenta, porém muito mais estável no GitHub Pages)
+        const { data: { text } } = await Tesseract.recognize(arquivo, 'por');
 
-        const textoExtraido = result.data.text;
-        
-        // Remove espaços e quebras de linha para não quebrar a chave
-        const chaveLimpa = textoExtraido.replace(/[^0-9]/g, ''); 
-        const correspondencia = chaveLimpa.match(/\d{44}/);
+        const chaveLimpa = text.replace(/[^0-9]/g, '');
+        const match = chaveLimpa.match(/\d{44}/);
 
-        if (correspondencia) {
-            echave.value = correspondencia[0];
+        if (match) {
+            echave.value = match[0];
             statusOcr.textContent = "✅ Chave identificada!";
             statusOcr.style.color = "green";
             verificar();
         } else {
-            statusOcr.textContent = "❌ Chave de 44 dígitos não encontrada na imagem.";
+            statusOcr.textContent = "❌ Chave não encontrada na imagem.";
             statusOcr.style.color = "red";
         }
-
     } catch (erro) {
-        console.error("Erro detalhado:", erro);
-        statusOcr.textContent = "⚠️ Erro: Falha ao carregar motor de leitura.";
-        statusOcr.style.color = "red";
+        console.error(erro);
+        statusOcr.textContent = "⚠️ Erro de carregamento da biblioteca.";
     }
 });
 

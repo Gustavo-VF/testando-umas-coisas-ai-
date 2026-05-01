@@ -122,16 +122,19 @@ const universalLink2 = "https://meudanfe.com.br/#";
 // --- FUNÇÃO PARA PROCESSAR COM IA ---
 async function lerNotaComIA(arquivo) {
     if (!arquivo) return;
-    statusOcr.textContent = "⏳ IA analisando nota... aguarde.";
+
+    // Se a função ainda não existe, apenas avisa e para
+    if (typeof window.perguntarIA !== 'function') {
+        statusOcr.textContent = "⏳ IA ainda está baixando... Aguarde o sinal de 'Pronta'.";
+        statusOcr.style.color = "orange";
+        return; 
+    }
+
+    statusOcr.textContent = "⏳ IA analisando nota...";
     statusOcr.style.color = "blue";
+
     try {
         const urlImagem = URL.createObjectURL(arquivo);
-        
-        // Verifica se a função da IA existe no window
-        if (typeof window.perguntarIA !== 'function') {
-            throw new Error("Motor de IA não carregado no HTML");
-        }
-
         const respostaIA = await window.perguntarIA(urlImagem);
         URL.revokeObjectURL(urlImagem);
 
@@ -140,17 +143,16 @@ async function lerNotaComIA(arquivo) {
 
         if (match) {
             echave.value = match[0];
-            statusOcr.textContent = "✅ Chave extraída com sucesso!";
+            statusOcr.textContent = "✅ Chave identificada!";
             statusOcr.style.color = "green";
             verificar();
         } else {
-            statusOcr.textContent = "❌ IA não localizou a chave de 44 dígitos.";
+            statusOcr.textContent = "❌ IA não encontrou a chave de 44 dígitos.";
             statusOcr.style.color = "red";
         }
     } catch (erro) {
-        console.error(erro);
-        statusOcr.textContent = "⚠️ Erro ao inicializar IA. Verifique o console (F12).";
-        statusOcr.style.color = "red";
+        console.error("Erro no OCR:", erro);
+        statusOcr.textContent = "⚠️ Erro ao processar imagem.";
     }
 }
 

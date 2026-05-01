@@ -1,10 +1,8 @@
-// --- MANTENDO SUAS CONFIGURAÇÕES ORIGINAIS ---
+// --- MANTENDO SUAS CONFIGURAÇÕES ORIGINAIS (Certifique-se que os dicionários estão aqui) ---
 const bColar = document.getElementById("bColar");
 const echave = document.getElementById("chave");
 const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
 const universalLink2 = "https://meudanfe.com.br/#";
-
-// ... (seus objetos satLinks, nfceLinks, mesNome e estadoNomes permanecem iguais)
 
 // --- NOVA LÓGICA DE LEITURA DE IMAGEM (OCR) ---
 const inputImagem = document.getElementById("inputImagem");
@@ -27,21 +25,21 @@ inputImagem.addEventListener("change", async (e) => {
             }
         });
 
-        // 2. Processar a imagem
+        // 2. Processar a imagem (usando o primeiro arquivo da lista)
         const { data: { text } } = await worker.recognize(arquivos[0]);
         
         // 3. Encerrar worker para liberar memória
         await worker.terminate();
 
-        // 4. Buscar a chave (44 números)
-        const chaveLimpa = text.replace(/\s/g, ''); // Remove espaços/quebras de linha
+        // 4. Buscar a chave (remove tudo que não é número e procura 44 dígitos)
+        const chaveLimpa = text.replace(/[^0-9]/g, ''); 
         const correspondencia = chaveLimpa.match(/\d{44}/);
 
         if (correspondencia) {
             echave.value = correspondencia[0];
             statusOcr.textContent = "✅ Chave identificada!";
             statusOcr.style.color = "green";
-            verificar(); // Chama sua lógica original
+            verificar(); // Dispara a validação automática
         } else {
             statusOcr.textContent = "❌ Não achei uma sequência de 44 números.";
             statusOcr.style.color = "red";
@@ -53,14 +51,12 @@ inputImagem.addEventListener("change", async (e) => {
     }
 });
 
-
-// --- SUAS FUNÇÕES ORIGINAIS (AJUSTADAS) ---
-
+// --- FUNÇÃO DE COLAR ---
 bColar.onclick = async () => {
     try {
         const texto = await navigator.clipboard.readText();
         echave.value = texto.replace(/[^0-9]/g, '');
-        verificar(); // Chamando direto a função
+        verificar();
     } catch (erro) {
         alert("Não foi possível colar o conteúdo");
     }
@@ -70,13 +66,11 @@ echave.addEventListener("input", () => {
     verificar();
 });
 
+// --- LÓGICA DE VALIDAÇÃO E REDIRECIONAMENTO ---
 function verificar() {
-    document.getElementById("link1").style.display = "none";
-    document.getElementById("link2").style.display = "none";
-    document.getElementById("botoes1").style.display = "none";
-    document.getElementById("botoes2").style.display = "none";
-    document.getElementById("mensagem").style.display = "none";
-    document.getElementById("resultado").style.display = "none";
+    // Reset visual
+    const idsParaEsconder = ["link1", "link2", "botoes1", "botoes2", "mensagem", "resultado"];
+    idsParaEsconder.forEach(id => document.getElementById(id).style.display = "none");
 
     let chave = echave.value.replace(/[^0-9]/g, '');
 
@@ -105,7 +99,7 @@ function verificar() {
         return;
     }
 
-    // Lógica de exibição baseada no tipo (55, 59, 65)
+    // Lógica de exibição por tipo de documento
     if (yy === "55") {
         exibirResultadoNfe(universalLink, universalLink2);
     } else if (yy === "59") {
@@ -126,7 +120,7 @@ function verificar() {
     document.getElementById("displaynumero").textContent = numero;
 }
 
-// Funções auxiliares para limpar seu código
+// --- FUNÇÕES AUXILIARES ---
 function exibirResultadoSimples(url) {
     document.getElementById("resultado").style.display = "grid";
     document.getElementById("link1").style.display = "flex";
@@ -146,26 +140,16 @@ function exibirResultadoNfe(url1, url2) {
     document.getElementById("link22").textContent = url2;
 }
 
-// --- MANTENDO SEUS EVENTOS DE BOTÕES ---
-document.getElementById("abrirLink").onclick = function () {
-    abrirEcopiar(document.getElementById("link").href);
-}
-
-document.getElementById("abrirLink1").onclick = function () {
-    abrirEcopiar(document.getElementById("link21").href);
-}
-
-document.getElementById("abrirLink2").onclick = function () {
-    abrirEcopiar(document.getElementById("link22").href);
-}
-
 function abrirEcopiar(url) {
     let chave = echave.value.replace(/[^0-9]/g, '');
     navigator.clipboard.writeText(chave);
     window.open(url, '_blank');
 }
 
-// Reutilizando sua função de mensagem
+document.getElementById("abrirLink").onclick = () => abrirEcopiar(document.getElementById("link").href);
+document.getElementById("abrirLink1").onclick = () => abrirEcopiar(document.getElementById("link21").href);
+document.getElementById("abrirLink2").onclick = () => abrirEcopiar(document.getElementById("link22").href);
+
 function escreverMensage(msg) {
     const mensagem = document.getElementById("mensagem");
     mensagem.textContent = msg;
@@ -173,7 +157,6 @@ function escreverMensage(msg) {
     setTimeout(() => { mensagem.style.display = "none"; }, 4000);
 }
 
-// Funções de copiar chave (simplificadas)
 async function copiarChave() {
     let chave = echave.value.replace(/[^0-9]/g, '');
     try {

@@ -7,10 +7,10 @@
     <link rel="stylesheet" href="style.css">
 
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
-  <script type="module">
+ <script type="module">
+    // Link corrigido para a biblioteca
     import { pipeline } from 'https://jsdelivr.net';
     
-    // Função que carrega o modelo e expõe para o window
     async function carregarIA() {
         try {
             console.log("🤖 Baixando modelo de IA...");
@@ -22,11 +22,15 @@
             };
             
             console.log("✅ IA Pronta!");
-            if (document.getElementById("statusOcr")) {
-                document.getElementById("statusOcr").textContent = "✅ IA pronta para uso!";
+            const status = document.getElementById("statusOcr");
+            if (status) {
+                status.textContent = "✅ IA pronta para uso!";
+                status.style.color = "green";
             }
         } catch (e) {
             console.error("Falha ao carregar IA:", e);
+            const status = document.getElementById("statusOcr");
+            if (status) status.textContent = "❌ Erro ao carregar IA.";
         }
     }
     carregarIA();

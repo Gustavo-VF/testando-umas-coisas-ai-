@@ -1,5 +1,100 @@
 // ========================================================
 // MANTENHA SEUS DICIONÁRIOS AQUI (satLinks, nfceLinks, etc)
+const satLinks = {
+    "11": "https://sefaz.ro.gov.br",
+    "12": "https://sefaz.ac.gov.br",
+    "13": "https://sefaz.am.gov.br",
+    "14": "https://sefaz.rr.gov.br",
+    "15": "https://sefa.pa.gov.br",
+    "16": "https://sefaz.ap.gov.br",
+    "17": "http://sefaz.to.gov.br",
+    "21": "http://sefaz.ma.gov.br",
+    "22": "https://sefaz.pi.gov.br",
+    "23": "https://sefaz.ce.gov.br",
+    "24": "http://set.rn.gov.br",
+    "25": "https://sefaz.pb.gov.br",
+    "26": "http://sefaz.pe.gov.br",
+    "27": "https://sefaz.al.gov.br",
+    "28": "https://sefaz.se.gov.br",
+    "29": "http://sefaz.ba.gov.br",
+    "31": "http://fazenda.mg.gov.br",
+    "32": "http://sefaz.es.gov.br",
+    "33": "https://fazenda.rj.gov.br",
+    "35": "https://fazenda.sp.gov.br",
+    "41": "https://fazenda.pr.gov.br",
+    "42": "https://sef.sc.gov.br",
+    "43": "https://sefaz.rs.gov.br",
+    "50": "http://dfe.ms.gov.br",
+    "51": "https://sefaz.mt.gov.br",
+    "52": "https://www.go.gov.br",
+    "53": "https://fazenda.df.gov.br"
+};
+
+const nfceLinks = {
+    "11": "https://sefin.ro.gov.br",
+    "12": "https://sefaznet.ac.gov.br",
+    "13": "https://sefaz.am.gov.br",
+    "14": "https://sefaz.rr.gov.br",
+    "15": "https://sefa.pa.gov.br",
+    "16": "https://sefaz.ap.gov.br",
+    "17": "http://sefaz.to.gov.br",
+    "21": "http://sefaz.ma.gov.br",
+    "22": "https://sefaz.pi.gov.br",
+    "23": "http://sefaz.ce.gov.br",
+    "24": "http://set.rn.gov.br",
+    "25": "https://sefaz.pb.gov.br",
+    "26": "https://sefaz.pe.gov.br",
+    "27": "https://sefaz.al.gov.br",
+    "28": "https://sefaz.se.gov.br",
+    "29": "http://sefaz.ba.gov.br",
+    "31": "http://fazenda.mg.gov.br",
+    "32": "http://sefaz.es.gov.br",
+    "33": "https://fazenda.rj.gov.br",
+    "35": "https://fazenda.sp.gov.br",
+    "41": "https://fazenda.pr.gov.br",
+    "42": "https://sef.sc.gov.br",
+    "43": "https://sefaz.rs.gov.br",
+    "50": "http://dfe.ms.gov.br",
+    "51": "http://sefaz.mt.gov.br",
+    "52": "http://sefaz.go.gov.br",
+    "53": "https://fazenda.df.gov.br"
+};
+
+const estadoNomes = {
+    "11": "Rondônia",
+    "12": "Acre",
+    "13": "Amazonas",
+    "14": "Roraima",
+    "15": "Pará",
+    "16": "Amapá",
+    "17": "Tocantins",
+    "21": "Maranhão",
+    "22": "Piauí",
+    "23": "Ceará",
+    "24": "Rio Grande do Norte",
+    "25": "Paraíba",
+    "26": "Pernambuco",
+    "27": "Alagoas",
+    "28": "Sergipe",
+    "29": "Bahia",
+    "31": "Minas Gerais",
+    "32": "Espírito Santo",
+    "33": "Rio de Janeiro",
+    "35": "São Paulo",
+    "41": "Paraná",
+    "42": "Santa Catarina",
+    "43": "Rio Grande do Sul",
+    "50": "Mato Grosso do Sul",
+    "51": "Mato Grosso",
+    "52": "Goiás",
+    "53": "Distrito Federal"
+};
+
+const mesNome = {
+    "01": "Jan", "02": "Fev", "03": "Mar", "04": "Abr", "05": "Mai", "06": "Jun",
+    "07": "Jul", "08": "Ago", "09": "Set", "10": "Out", "11": "Nov", "12": "Dez"
+};
+
 // ========================================================
 
 const bColar = document.getElementById("bColar");

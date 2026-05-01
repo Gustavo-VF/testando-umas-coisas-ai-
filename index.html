@@ -9,19 +9,22 @@
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
 <script type="module">
     // Usando esm.sh para evitar erros de CORS e carregar a biblioteca corretamente
-    import { pipeline } from 'https://esm.sh';
-    
-    async function carregarIA() {
-        try {
-            console.log("🤖 Iniciando IA via esm.sh...");
-            // O modelo Donut é um dos melhores para ler documentos e notas
-            const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
-            
-            window.perguntarIA = async (imagemUrl) => {
-                // Prompt direto: "Qual é a chave de acesso de 44 dígitos?"
-                const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
-                return resultado.answer;
-            };
+   import { pipeline, env } from 'https://jsdelivr.net';
+
+// Isso ajuda a evitar que a biblioteca tente procurar arquivos localmente
+env.allowLocalModels = false;
+env.useBrowserCache = true; 
+
+async function carregarIA() {
+    try {
+        console.log("🤖 Iniciando IA...");
+        // O modelo Donut é pesado (aprox. 80MB+), ele vai demorar um pouco na primeira vez
+        const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
+        
+        window.perguntarIA = async (imagemUrl) => {
+            const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
+            return resultado[0].answer; // O retorno do pipeline é um array
+        };
             
             console.log("✅ IA Pronta!");
             const status = document.getElementById("statusOcr");

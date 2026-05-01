@@ -168,6 +168,32 @@ li {
     text-decoration: none;
 }
 
+.drop-zone {
+    margin-top: 20px;
+    border: 2px dashed #ccc;
+    padding: 30px;
+    border-radius: 8px;
+    text-align: center;
+    background: #fdfdfd;
+    transition: all 0.3s ease;
+}
+
+.drop-zone.dragover {
+    border-color: #2196F3;
+    background-color: #e3f2fd;
+    transform: scale(1.02);
+}
+
+.status-texto {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+
+
+
+
+
 
 
 

@@ -5,12 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecionador Sefaz</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Biblioteca OCR atualizada -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+    <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
+    <script type="module">
+        // Link corrigido para a biblioteca de IA
+        import { pipeline } from 'https://jsdelivr.net';
+        
+        async function inicializarIA() {
+            try {
+                console.log("🤖 Baixando cérebro da IA (aprox. 150MB)...");
+                // Modelo especialista em entender documentos e responder perguntas
+                const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
+                
+                window.perguntarIA = async (imagemUrl) => {
+                    const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
+                    return resultado[0].answer;
+                };
+                
+                console.log("✅ IA Pronta!");
+                // Avisa o status na tela se o elemento existir
+                const status = document.getElementById("statusOcr");
+                if (status) status.textContent = "✅ IA pronta para uso!";
+            } catch (e) {
+                console.error("Erro ao carregar IA:", e);
+            }
+        }
+        inicializarIA();
+    </script>
 </head>
 <body>
     <div class="divPadrao" id="mensagem"></div>
-    
+
     <div class="menuBar">
         <h1>Redirecionador Sefaz</h1>
         <nav class="navMenu">
@@ -24,6 +49,7 @@
         <div class="layout">
             <div class="divPadrao inputSefaz">
                 <h1>Redirecionador Sefaz</h1>
+                
                 <div id="mensagems">
                     <h2>Preencha a chave ou use uma imagem da nota</h2>
                 </div>
@@ -33,21 +59,21 @@
                     <button id="bColar">Colar Texto</button>
                 </div>
 
-                <!-- NOVA ÁREA DE DROP / UPLOAD -->
-               <!-- Área de Drop e Botão de Colar Imagem -->
-<div id="dropZone" class="drop-zone">
-    <label for="inputImagem" class="drop-label">
-        📷 <strong>Arraste a nota aqui ou clique para selecionar</strong>
-    </label>
-    <input type="file" id="inputImagem" accept="image/*" style="display: none;">
-    
-    <button id="bColarImagem" type="button" style="margin-top: 10px; padding: 5px 15px; cursor: pointer;">
-        📋 Colar Imagem da Área de Transferência
-    </button>
-    
-    <p id="statusOcr" class="status-texto">Aguardando nota...</p>
-</div>
+                <!-- Área de Drop e Botão de Colar Imagem -->
+                <div id="dropZone" class="drop-zone">
+                    <label for="inputImagem" class="drop-label">
+                        📷 <strong>Arraste a nota aqui ou clique para selecionar</strong>
+                    </label>
+                    <input type="file" id="inputImagem" accept="image/*" style="display: none;">
+                    
+                    <button id="bColarImagem" type="button" class="btn-colar-img">
+                        📋 Colar Imagem (Área de Transferência)
+                    </button>
+                    
+                    <p id="statusOcr" class="status-texto">⏳ Carregando IA... aguarde.</p>
+                </div>
 
+                <!-- Resultados -->
                 <div class="resultado" id="resultado" style="display: none;">
                     <p><strong>Estado: </strong><span id="displayestado"></span></p>
                     <p><strong>Mes: </strong><span id="displaymes"></span></p>
@@ -57,10 +83,10 @@
                     <p><strong>Nº: </strong><span id="displaynumero"></span></p>
                 </div>
 
+                <!-- Links e Botoes -->
                 <div class="link1" id="link1" style="display: none;">
                     <p><strong>Link: </strong><a id="link" href="#" target="_blank"></a></p>
                 </div>
-
                 <div class="link2" id="link2" style="display: none;">
                     <p><strong>Link-1: </strong><a id="link21" class="link" href="#" target="_blank"></a></p>
                     <p><strong>Link-2: </strong><a id="link22" class="link" href="#" target="_blank"></a></p>
@@ -77,6 +103,7 @@
                     <button id="abrirLink2">Abrir link 2 em outra aba</button>
                 </div>
 
+                <!-- Informações Úteis -->
                 <div class="on-Infos">
                     <div class="infos">
                         <h1>Informações</h1>
@@ -86,7 +113,6 @@
                             <li>59 → Link SAT</li>
                             <li>65 → Link NFC-e</li>
                         </ul>
-                        <!-- ... resto das suas informações ... -->
                     </div>
                 </div>
             </div>
@@ -97,26 +123,7 @@
         </div>
     </main>
 
+    <!-- Seu Script principal por último -->
     <script src="script.js"></script>
-
-    <script type="module">
-    import { pipeline } from 'https://jsdelivr.net';
-    
-    // Função que será chamada pelo seu script.js
-    async function inicializarIA() {
-        console.log("🤖 Carregando motor de IA...");
-        const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
-        
-        window.perguntarIA = async (imagemUrl) => {
-            const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
-            return resultado.answer;
-        };
-        console.log("✅ IA Pronta!");
-    }
-
-    inicializarIA();
-</script>
-
-    
 </body>
 </html>

@@ -8,16 +8,17 @@
 
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
 <script type="module">
-    // Usamos o ESM.sh que resolve automaticamente os problemas de CORS do GitHub
+    // Usando esm.sh para evitar erros de CORS e carregar a biblioteca corretamente
     import { pipeline } from 'https://esm.sh';
     
     async function carregarIA() {
         try {
-            console.log("🤖 Iniciando IA...");
-            // O modelo Donut é excelente para notas fiscais
+            console.log("🤖 Iniciando IA via esm.sh...");
+            // O modelo Donut é um dos melhores para ler documentos e notas
             const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
             
             window.perguntarIA = async (imagemUrl) => {
+                // Prompt direto: "Qual é a chave de acesso de 44 dígitos?"
                 const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
                 return resultado.answer;
             };
@@ -29,13 +30,17 @@
                 status.style.color = "green";
             }
         } catch (e) {
-            console.error("Erro fatal na IA:", e);
+            console.error("Erro ao carregar IA:", e);
             const status = document.getElementById("statusOcr");
-            if (status) status.textContent = "❌ Falha crítica ao carregar motor.";
+            if (status) {
+                status.textContent = "❌ Falha ao carregar motor de IA.";
+                status.style.color = "red";
+            }
         }
     }
     carregarIA();
 </script>
+
 
 </head>
 <body>

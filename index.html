@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="style.css">
 
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
- <script type="module">
-    // Link corrigido para a biblioteca
-    import { pipeline } from 'https://jsdelivr.net';
+<script type="module">
+    // Trocamos o servidor de cdn.jsdelivr.net para unpkg.com
+    import { pipeline } from 'https://unpkg.com';
     
     async function carregarIA() {
         try {
@@ -30,7 +30,7 @@
         } catch (e) {
             console.error("Falha ao carregar IA:", e);
             const status = document.getElementById("statusOcr");
-            if (status) status.textContent = "❌ Erro ao carregar IA.";
+            if (status) status.textContent = "❌ Erro de conexão com o motor da IA.";
         }
     }
     carregarIA();

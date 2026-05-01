@@ -11,37 +11,48 @@ const inputImagem = document.getElementById("inputImagem");
 const statusOcr = document.getElementById("statusOcr");
 
 inputImagem.addEventListener("change", async (e) => {
-    const arquivo = e.target.files[0];
-    if (!arquivo) return;
+    const arquivos = e.target.files;
+    if (arquivos.length === 0) return;
 
-    statusOcr.textContent = "⏳ Lendo imagem... aguarde.";
+    statusOcr.textContent = "⏳ Inicializando processador...";
     statusOcr.style.color = "blue";
 
     try {
-        // Usa o Tesseract para reconhecer o texto na imagem
-        const result = await Tesseract.recognize(arquivo, 'por');
-        const textoExtraido = result.data.text;
+        // 1. Criar o Worker (Processador)
+        const worker = await Tesseract.createWorker('por', 1, {
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    statusOcr.textContent = `⏳ Lendo nota: ${Math.round(m.progress * 100)}%`;
+                }
+            }
+        });
 
-        // Procura por uma sequência de 44 números no texto
-        const chaveEncontrada = textoExtraido.replace(/\s/g, '').match(/\d{44}/);
+        // 2. Processar a imagem
+        const { data: { text } } = await worker.recognize(arquivos[0]);
+        
+        // 3. Encerrar worker para liberar memória
+        await worker.terminate();
 
-        if (chaveEncontrada) {
-            echave.value = chaveEncontrada[0];
-            statusOcr.textContent = "✅ Chave encontrada com sucesso!";
+        // 4. Buscar a chave (44 números)
+        const chaveLimpa = text.replace(/\s/g, ''); // Remove espaços/quebras de linha
+        const correspondencia = chaveLimpa.match(/\d{44}/);
+
+        if (correspondencia) {
+            echave.value = correspondencia[0];
+            statusOcr.textContent = "✅ Chave identificada!";
             statusOcr.style.color = "green";
-            
-            // Dispara sua função de verificação automática
-            verificar();
+            verificar(); // Chama sua lógica original
         } else {
-            statusOcr.textContent = "❌ Chave de 44 dígitos não encontrada na imagem.";
+            statusOcr.textContent = "❌ Não achei uma sequência de 44 números.";
             statusOcr.style.color = "red";
         }
     } catch (erro) {
-        console.error(erro);
-        statusOcr.textContent = "⚠️ Erro ao processar imagem.";
+        console.error("Erro detalhado:", erro);
+        statusOcr.textContent = "⚠️ Erro técnico ao ler imagem.";
         statusOcr.style.color = "red";
     }
 });
+
 
 // --- SUAS FUNÇÕES ORIGINAIS (AJUSTADAS) ---
 

@@ -98,5 +98,25 @@
     </main>
 
     <script src="script.js"></script>
+
+    <script type="module">
+    import { pipeline } from 'https://jsdelivr.net';
+    
+    // Função que será chamada pelo seu script.js
+    async function inicializarIA() {
+        console.log("🤖 Carregando motor de IA...");
+        const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
+        
+        window.perguntarIA = async (imagemUrl) => {
+            const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
+            return resultado.answer;
+        };
+        console.log("✅ IA Pronta!");
+    }
+
+    inicializarIA();
+</script>
+
+    
 </body>
 </html>

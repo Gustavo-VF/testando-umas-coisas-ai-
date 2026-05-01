@@ -117,39 +117,44 @@ const dropZone = document.getElementById("dropZone");
 const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
 const universalLink2 = "https://meudanfe.com.br/#"
 
-// --- FUNÇÃO CENTRAL DE LEITURA DE IMAGEM ---
-async function lerNota(arquivo) {
-    if (!arquivo) return;
-    
-    statusOcr.textContent = "⏳ IA carregando cérebro... (pode demorar na 1ª vez)";
-    statusOcr.style.color = "blue";
+// --- VARIÁREIS DE INTERFACE ---
+const echave = document.getElementById("chave");
+const statusOcr = document.getElementById("statusOcr");
+const inputImagem = document.getElementById("inputImagem");
+const dropZone = document.getElementById("dropZone");
+const bColarImagem = document.getElementById("bColarImagem");
+const bColar = document.getElementById("bColar");
 
+// --- CONFIGURAÇÕES DOS LINKS ---
+const universalLink = "https://fazenda.gov.br";
+const universalLink2 = "https://meudanfe.com.br";
+
+// --- FUNÇÃO PARA PROCESSAR COM IA ---
+async function lerNotaComIA(arquivo) {
+    if (!arquivo) return;
+    statusOcr.textContent = "⏳ IA analisando nota... aguarde.";
+    statusOcr.style.color = "blue";
     try {
         const urlImagem = URL.createObjectURL(arquivo);
-        
-        // Aqui enviamos a pergunta exata para a IA
-        const prompt = "What is the 44-digit access key?"; // Modelos de IA atuais entendem melhor em inglês, mas buscam o dado na nota
-        
-        const resposta = await window.perguntarIA(urlImagem, prompt);
+        // Chama a IA definida no HTML
+        const respostaIA = await window.perguntarIA(urlImagem);
         URL.revokeObjectURL(urlImagem);
 
-        // A IA retorna a resposta baseada no prompt
-        const textoIA = resposta[0].answer;
-        const chaveLimpa = textoIA.replace(/[^0-9]/g, '');
+        const chaveLimpa = respostaIA.replace(/[^0-9]/g, '');
         const match = chaveLimpa.match(/\d{44}/);
 
         if (match) {
             echave.value = match[0];
-            statusOcr.textContent = "✅ Chave extraída pela IA!";
+            statusOcr.textContent = "✅ Chave extraída com sucesso!";
             statusOcr.style.color = "green";
             verificar();
         } else {
-            statusOcr.textContent = "❌ IA não conseguiu localizar a chave.";
-            console.log("IA respondeu:", textoIA);
+            statusOcr.textContent = "❌ IA não localizou a chave de 44 dígitos.";
+            statusOcr.style.color = "red";
         }
     } catch (erro) {
         console.error(erro);
-        statusOcr.textContent = "⚠️ Erro ao inicializar IA no navegador.";
+        statusOcr.textContent = "⚠️ Erro ao carregar motor de IA.";
     }
 }
 

@@ -9,12 +9,16 @@
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
 <script type="module">
     // Usando esm.sh para evitar erros de CORS e carregar a biblioteca corretamente
-import { pipeline, env } from 'https://jsdelivr.net';
-// Isso ajuda a evitar que a biblioteca tente procurar arquivos localmente
+import { pipeline, env } from 'https://esm.sh';
+
+// Configurações para evitar bloqueios de segurança
 env.allowLocalModels = false;
-env.useBrowserCache = true; 
+env.remoteHost = 'https://huggingface.co';
+env.remotePathTemplate = '{model}/resolve/{revision}/';
 
 async function carregarIA() {
+    // ... restante do seu código
+}
     try {
         console.log("🤖 Iniciando IA...");
         // O modelo Donut é pesado (aprox. 80MB+), ele vai demorar um pouco na primeira vez

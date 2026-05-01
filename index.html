@@ -7,31 +7,30 @@
     <link rel="stylesheet" href="style.css">
 
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
-    <script type="module">
-        // Link corrigido para a biblioteca de IA
-        import { pipeline } from 'https://jsdelivr.net';
-        
-        async function inicializarIA() {
-            try {
-                console.log("🤖 Baixando cérebro da IA (aprox. 150MB)...");
-                // Modelo especialista em entender documentos e responder perguntas
-                const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
-                
-                window.perguntarIA = async (imagemUrl) => {
-                    const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
-                    return resultado[0].answer;
-                };
-                
-                console.log("✅ IA Pronta!");
-                // Avisa o status na tela se o elemento existir
-                const status = document.getElementById("statusOcr");
-                if (status) status.textContent = "✅ IA pronta para uso!";
-            } catch (e) {
-                console.error("Erro ao carregar IA:", e);
+  <script type="module">
+    import { pipeline } from 'https://jsdelivr.net';
+    
+    // Função que carrega o modelo e expõe para o window
+    async function carregarIA() {
+        try {
+            console.log("🤖 Baixando modelo de IA...");
+            const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
+            
+            window.perguntarIA = async (imagemUrl) => {
+                const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
+                return resultado.answer;
+            };
+            
+            console.log("✅ IA Pronta!");
+            if (document.getElementById("statusOcr")) {
+                document.getElementById("statusOcr").textContent = "✅ IA pronta para uso!";
             }
+        } catch (e) {
+            console.error("Falha ao carregar IA:", e);
         }
-        inicializarIA();
-    </script>
+    }
+    carregarIA();
+</script>
 </head>
 <body>
     <div class="divPadrao" id="mensagem"></div>

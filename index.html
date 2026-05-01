@@ -34,13 +34,19 @@
                 </div>
 
                 <!-- NOVA ÁREA DE DROP / UPLOAD -->
-                <div id="dropZone" class="drop-zone">
-                    <label for="inputImagem" class="drop-label">
-                        📷 <strong>Arraste a nota aqui, clique ou cole a imagem (Ctrl+V)</strong>
-                    </label>
-                    <input type="file" id="inputImagem" accept="image/*" style="display: none;">
-                    <p id="statusOcr" class="status-texto">Aguardando imagem...</p>
-                </div>
+               <!-- Área de Drop e Botão de Colar Imagem -->
+<div id="dropZone" class="drop-zone">
+    <label for="inputImagem" class="drop-label">
+        📷 <strong>Arraste a nota aqui ou clique para selecionar</strong>
+    </label>
+    <input type="file" id="inputImagem" accept="image/*" style="display: none;">
+    
+    <button id="bColarImagem" type="button" style="margin-top: 10px; padding: 5px 15px; cursor: pointer;">
+        📋 Colar Imagem da Área de Transferência
+    </button>
+    
+    <p id="statusOcr" class="status-texto">Aguardando nota...</p>
+</div>
 
                 <div class="resultado" id="resultado" style="display: none;">
                     <p><strong>Estado: </strong><span id="displayestado"></span></p>

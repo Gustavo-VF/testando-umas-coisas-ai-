@@ -107,27 +107,17 @@ const estadoNomes = {
 
 // ========================================================
 
+// --- VARIÁREIS DE INTERFACE (Declarar apenas uma vez) ---
 const bColar = document.getElementById("bColar");
 const bColarImagem = document.getElementById("bColarImagem");
 const echave = document.getElementById("chave");
 const inputImagem = document.getElementById("inputImagem");
 const statusOcr = document.getElementById("statusOcr");
 const dropZone = document.getElementById("dropZone");
-
-const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
-const universalLink2 = "https://meudanfe.com.br/#"
-
-// --- VARIÁREIS DE INTERFACE ---
-const echave = document.getElementById("chave");
-const statusOcr = document.getElementById("statusOcr");
-const inputImagem = document.getElementById("inputImagem");
-const dropZone = document.getElementById("dropZone");
-const bColarImagem = document.getElementById("bColarImagem");
-const bColar = document.getElementById("bColar");
 
 // --- CONFIGURAÇÕES DOS LINKS ---
-const universalLink = "https://fazenda.gov.br";
-const universalLink2 = "https://meudanfe.com.br";
+const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
+const universalLink2 = "https://meudanfe.com.br/#";
 
 // --- FUNÇÃO PARA PROCESSAR COM IA ---
 async function lerNotaComIA(arquivo) {
@@ -136,7 +126,12 @@ async function lerNotaComIA(arquivo) {
     statusOcr.style.color = "blue";
     try {
         const urlImagem = URL.createObjectURL(arquivo);
-        // Chama a IA definida no HTML
+        
+        // Verifica se a função da IA existe no window
+        if (typeof window.perguntarIA !== 'function') {
+            throw new Error("Motor de IA não carregado no HTML");
+        }
+
         const respostaIA = await window.perguntarIA(urlImagem);
         URL.revokeObjectURL(urlImagem);
 
@@ -154,11 +149,14 @@ async function lerNotaComIA(arquivo) {
         }
     } catch (erro) {
         console.error(erro);
-        statusOcr.textContent = "⚠️ Erro ao carregar motor de IA.";
+        statusOcr.textContent = "⚠️ Erro ao inicializar IA. Verifique o console (F12).";
+        statusOcr.style.color = "red";
     }
 }
 
-// --- ARRASTAR E SOLTAR (DRAG & DROP) ---
+// --- EVENTOS DE INTERAÇÃO ---
+
+// Arrastar e soltar
 ['dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, (e) => {
         e.preventDefault();
@@ -172,37 +170,36 @@ dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover
 dropZone.addEventListener('drop', (e) => {
     dropZone.classList.remove('dragover');
     const arquivo = e.dataTransfer.files[0];
-    lerNota(arquivo);
+    lerNotaComIA(arquivo); // Corrigido para o nome certo
 });
 
-// --- BOTÃO COLAR IMAGEM ---
+// Botão Colar Imagem
 bColarImagem.onclick = async () => {
     try {
         const itens = await navigator.clipboard.read();
         for (const item of itens) {
             if (item.types.some(type => type.startsWith('image/'))) {
                 const blob = await item.getType(item.types.find(t => t.startsWith('image/')));
-                lerNota(blob);
+                lerNotaComIA(blob); // Corrigido
                 return;
             }
         }
-        alert("Nenhuma imagem encontrada na área de transferência.");
     } catch (err) {
         alert("Erro ao acessar clipboard. Tente Ctrl+V.");
     }
 };
 
-// --- CLIQUE NO INPUT DE ARQUIVO ---
-inputImagem.addEventListener("change", (e) => lerNota(e.target.files[0]));
+// Clique no input
+inputImagem.addEventListener("change", (e) => lerNotaComIA(e.target.files[0]));
 
-// --- FUNÇÃO DE COLAR TEXTO ---
+// Botão Colar Texto
 bColar.onclick = async () => {
     try {
         const texto = await navigator.clipboard.readText();
         echave.value = texto.replace(/[^0-9]/g, '');
         verificar();
     } catch (erro) {
-        alert("Não foi possível colar o conteúdo");
+        alert("Não foi possível colar o texto.");
     }
 }
 

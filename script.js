@@ -12,12 +12,14 @@ inputImagem.addEventListener("change", async (e) => {
     const arquivos = e.target.files;
     if (arquivos.length === 0) return;
 
-    statusOcr.textContent = "⏳ Inicializando processador...";
+    statusOcr.textContent = "⏳ Carregando inteligência...";
     statusOcr.style.color = "blue";
 
     try {
-        // 1. Criar o Worker (Processador)
+        // Criar o worker usando o CDN para os arquivos de dados (evita erro de permissão)
         const worker = await Tesseract.createWorker('por', 1, {
+            workerPath: 'https://jsdelivr.net',
+            corePath: 'https://jsdelivr.net',
             logger: m => {
                 if (m.status === 'recognizing text') {
                     statusOcr.textContent = `⏳ Lendo nota: ${Math.round(m.progress * 100)}%`;
@@ -25,13 +27,10 @@ inputImagem.addEventListener("change", async (e) => {
             }
         });
 
-        // 2. Processar a imagem (usando o primeiro arquivo da lista)
         const { data: { text } } = await worker.recognize(arquivos[0]);
-        
-        // 3. Encerrar worker para liberar memória
         await worker.terminate();
 
-        // 4. Buscar a chave (remove tudo que não é número e procura 44 dígitos)
+        // Limpa tudo que não é número para encontrar a chave
         const chaveLimpa = text.replace(/[^0-9]/g, ''); 
         const correspondencia = chaveLimpa.match(/\d{44}/);
 
@@ -39,14 +38,14 @@ inputImagem.addEventListener("change", async (e) => {
             echave.value = correspondencia[0];
             statusOcr.textContent = "✅ Chave identificada!";
             statusOcr.style.color = "green";
-            verificar(); // Dispara a validação automática
+            verificar();
         } else {
-            statusOcr.textContent = "❌ Não achei uma sequência de 44 números.";
+            statusOcr.textContent = "❌ Chave de 44 dígitos não encontrada na imagem.";
             statusOcr.style.color = "red";
         }
     } catch (erro) {
-        console.error("Erro detalhado:", erro);
-        statusOcr.textContent = "⚠️ Erro técnico ao ler imagem.";
+        console.error(erro);
+        statusOcr.textContent = "⚠️ Erro ao acessar o leitor de imagem.";
         statusOcr.style.color = "red";
     }
 });

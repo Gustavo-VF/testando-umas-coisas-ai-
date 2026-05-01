@@ -8,10 +8,10 @@
 
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
 <script type="module">
-    // 1. Especificar o pacote transformers no esm.sh
-    import { pipeline, env } from 'https://esm.sh';
+    // Importando a versão específica e estável via jsDelivr
+    import { pipeline, env } from 'https://jsdelivr.net';
 
-    // Configurações de segurança e caminhos
+    // Configurações para carregar do Hugging Face corretamente
     env.allowLocalModels = false;
     env.useBrowserCache = true;
 
@@ -19,16 +19,14 @@
         try {
             console.log("🤖 Iniciando IA...");
             
-            // Carrega o modelo
+            // Carrega o motor de perguntas em documentos
             const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
 
+            // Define a função global que o seu arquivo .js vai chamar
             window.perguntarIA = async (imagemUrl) => {
-                // O modelo Donut retorna um array de objetos
                 const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
-                
-                // 2. Ajuste no retorno: o Transformers.js costuma retornar [{answer: "..."}]
-                // Verificamos se existe resultado e retornamos a resposta
-                return resultado && resultado.length > 0 ? resultado[0].answer : "";
+                // O resultado vem no formato: [{answer: "valor"}]
+                return (resultado && resultado[0]) ? resultado[0].answer : "";
             };
 
             console.log("✅ IA Pronta!");
@@ -49,7 +47,6 @@
 
     carregarIA();
 </script>
-
 
 
 </head>

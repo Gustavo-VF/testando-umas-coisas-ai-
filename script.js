@@ -1,4 +1,4 @@
-// ========================================================
+// ======================================================
 // MANTENHA SEUS DICIONÁRIOS AQUI (satLinks, nfceLinks, etc)
 const satLinks = {
     "11": "https://sistemas.sefaz.ro.gov.br/",

@@ -129,10 +129,28 @@ async function lerNota(arquivo) {
     try {
         const result = await Tesseract.recognize(arquivo, 'por+eng');
         const chaveLimpa = result.data.text.replace(/[^0-9]/g, '');
-        const match = chaveLimpa.match(/\d{44}/);
+        
+        // Busca TODAS as sequências de 44 dígitos e valida a UF
+        const ufsValidas = Object.keys(estadoNomes);
+        const matches = chaveLimpa.match(/\d{44}/g) || [];
+        
+        // Tenta encontrar uma que começa com UF válida
+        const chaveValida = matches.find(m => ufsValidas.includes(m.slice(0, 2)));
 
-        if (match) {
-            echave.value = match[0];
+        // Se não achou, tenta deslizar pela string inteira procurando UF válida
+        let chave = chaveValida;
+        if (!chave) {
+            for (let i = 0; i <= chaveLimpa.length - 44; i++) {
+                const candidata = chaveLimpa.slice(i, i + 44);
+                if (ufsValidas.includes(candidata.slice(0, 2))) {
+                    chave = candidata;
+                    break;
+                }
+            }
+        }
+
+        if (chave) {
+            echave.value = chave;
             statusOcr.textContent = "✅ Chave identificada!";
             statusOcr.style.color = "green";
             verificar();
@@ -146,7 +164,6 @@ async function lerNota(arquivo) {
         statusOcr.style.color = "orange";
     }
 }
-
 // --- ARRASTAR E SOLTAR ---
 ['dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, (e) => {

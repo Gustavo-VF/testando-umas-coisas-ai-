@@ -144,8 +144,7 @@ async function preprocessarImagem(arquivo) {
                 const data = imageData.data;
                 for (let i = 0; i < data.length; i += 4) {
                     const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-                    const contraste = gray > 128 ? 255 : 0;
-                    data[i] = data[i+1] = data[i+2] = contraste;
+                   data[i] = data[i+1] = data[i+2] = gray;
                 }
                 ctx.putImageData(imageData, 0, 0);
                 URL.revokeObjectURL(url);

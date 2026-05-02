@@ -155,11 +155,13 @@ function encontrarChave(str) {
     for (let i = 0; i <= str.length - 44; i++) {
         const c = str.slice(i, i + 44);
         const uf  = c.slice(0, 2);
+        const ano = Number(c.slice(2, 4));
         const mes = Number(c.slice(4, 6));
         const yy  = c.slice(20, 22);
 
         if (
             ufsValidas.includes(uf) &&
+            ano >= 6 && ano <= 30 &&   // ano entre 2006 e 2030
             mes >= 1 && mes <= 12 &&
             tiposValidos.includes(yy)
         ) {

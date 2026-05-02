@@ -7,36 +7,7 @@
     <link rel="stylesheet" href="style.css">
 
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
-<script type="module">
-    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
-    env.allowLocalModels = false;
-    env.useBrowserCache = true;
-    async function carregarIA() {
-        try {
-            console.log("🤖 Iniciando IA...");
-            
-            const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
-            window.perguntarIA = async (imagemUrl) => {
-                const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
-                return (resultado && resultado[0]) ? resultado[0].answer : "";
-            };
-            console.log("✅ IA Pronta!");
-            const status = document.getElementById("statusOcr");
-            if (status) {
-                status.textContent = "✅ IA pronta para uso!";
-                status.style.color = "green";
-            }
-        } catch (e) {
-            console.error("Erro ao carregar IA:", e);
-            const status = document.getElementById("statusOcr");
-            if (status) {
-                status.textContent = "❌ Falha ao carregar motor de IA.";
-                status.style.color = "red";
-            }
-        }
-    }
-    carregarIA();
-</script>
+<script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
 
 
 </head>

@@ -122,40 +122,46 @@ const universalLink2 = "https://meudanfe.com.br/#";
 
 // --- FUNÇÃO CENTRAL DE LEITURA DE IMAGEM ---
 // --- PRÉ-PROCESSAMENTO ---
-async function preprocessarImagem(arquivo) {
+async function preprocessarImagem(arquivo, graus = 0) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         const url = URL.createObjectURL(arquivo);
-        
-        img.onerror = () => {
-            URL.revokeObjectURL(url);
-            reject(new Error("Não foi possível carregar a imagem."));
-        };
+
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Erro ao carregar imagem.")); };
 
         img.onload = () => {
             try {
                 const canvas = document.createElement('canvas');
-                canvas.width = img.width * 2;
-                canvas.height = img.height * 2;
+                const rad = graus * Math.PI / 180;
+
+                // Troca largura/altura se rotação for 90 ou 270
+                if (graus === 90 || graus === 270) {
+                    canvas.width = img.height * 2;
+                    canvas.height = img.width * 2;
+                } else {
+                    canvas.width = img.width * 2;
+                    canvas.height = img.height * 2;
+                }
+
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(rad);
+                ctx.drawImage(img, -img.width, -img.height, img.width * 2, img.height * 2);
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
 
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imageData.data;
                 for (let i = 0; i < data.length; i += 4) {
                     const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-                   data[i] = data[i+1] = data[i+2] = gray;
+                    data[i] = data[i+1] = data[i+2] = gray;
                 }
                 ctx.putImageData(imageData, 0, 0);
                 URL.revokeObjectURL(url);
                 canvas.toBlob((blob) => {
                     if (blob) resolve(blob);
-                    else reject(new Error("Falha ao converter canvas para blob."));
+                    else reject(new Error("Falha ao converter canvas."));
                 }, 'image/png');
-            } catch (e) {
-                URL.revokeObjectURL(url);
-                reject(e);
-            }
+            } catch (e) { URL.revokeObjectURL(url); reject(e); }
         };
 
         img.src = url;
@@ -193,32 +199,33 @@ async function lerNota(arquivo) {
     statusOcr.style.color = "blue";
 
     try {
-        // Tentativa 1: com pré-processamento
-        const imagemProcessada = await preprocessarImagem(arquivo);
-        const result1 = await Tesseract.recognize(imagemProcessada, 'por+eng', {
-            tessedit_pageseg_mode: '1'
-        });
-        let chave = encontrarChave(result1.data.text.replace(/[^0-9]/g, ''));
+        const rotacoes = [0, 90, 180, 270];
 
-        // Tentativa 2: sem pré-processamento, se a primeira falhou
-        if (!chave) {
-            statusOcr.textContent = "⏳ Tentando segunda leitura...";
-            const result2 = await Tesseract.recognize(arquivo, 'por+eng', {
-                tessedit_pageseg_mode: '6' // modo bloco de texto único
+        for (const graus of rotacoes) {
+            if (graus > 0) statusOcr.textContent = `⏳ Tentando rotação ${graus}°...`;
+
+            const imagemProcessada = await preprocessarImagem(arquivo, graus);
+            const result = await Tesseract.recognize(imagemProcessada, 'por+eng', {
+                tessedit_pageseg_mode: '6'
             });
-            chave = encontrarChave(result2.data.text.replace(/[^0-9]/g, ''));
+
+            const chave = encontrarChave(result.data.text.replace(/[^0-9]/g, ''));
+
+            if (chave) {
+                echave.value = chave;
+                statusOcr.textContent = graus > 0
+                    ? `✅ Chave identificada! (imagem estava ${graus}° rotacionada)`
+                    : "✅ Chave identificada!";
+                statusOcr.style.color = "green";
+                verificar();
+                return;
+            }
         }
 
-        if (chave) {
-            echave.value = chave;
-            statusOcr.textContent = "✅ Chave identificada!";
-            statusOcr.style.color = "green";
-            verificar();
-        } else {
-            statusOcr.innerHTML = `❌ Não consegui ler a chave automaticamente.<br>
-            <small style="color:#888">Digite ou cole a chave manualmente no campo acima.</small>`;
-            statusOcr.style.color = "red";
-        }
+        statusOcr.innerHTML = `❌ Não consegui ler a chave automaticamente.<br>
+        <small style="color:#888">Digite ou cole a chave manualmente no campo acima.</small>`;
+        statusOcr.style.color = "red";
+
     } catch (erro) {
         console.error("Erro detalhado:", erro.message, erro);
         statusOcr.textContent = "⚠️ Erro ao processar imagem.";

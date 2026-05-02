@@ -8,29 +8,18 @@
 
     <!-- 1. Carregar a IA Primeiro (Importante estar no Head) -->
 <script type="module">
-    // Importando a versão específica e estável via jsDelivr
-   import { pipeline, env } from 'https://jsdelivr.net';
-
-
-
-    // Configurações para carregar do Hugging Face corretamente
+    import { pipeline, env } from '[cdn.jsdelivr.net](https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2)';
     env.allowLocalModels = false;
     env.useBrowserCache = true;
-
     async function carregarIA() {
         try {
             console.log("🤖 Iniciando IA...");
             
-            // Carrega o motor de perguntas em documentos
             const vqa = await pipeline('document-question-answering', 'Xenova/donut-base-finetuned-docvqa');
-
-            // Define a função global que o seu arquivo .js vai chamar
             window.perguntarIA = async (imagemUrl) => {
                 const resultado = await vqa(imagemUrl, "What is the 44-digit access key?");
-                // O resultado vem no formato: [{answer: "valor"}]
                 return (resultado && resultado[0]) ? resultado[0].answer : "";
             };
-
             console.log("✅ IA Pronta!");
             const status = document.getElementById("statusOcr");
             if (status) {
@@ -46,7 +35,6 @@
             }
         }
     }
-
     carregarIA();
 </script>
 

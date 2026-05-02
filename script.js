@@ -129,25 +129,8 @@ async function lerNota(arquivo) {
     try {
         const result = await Tesseract.recognize(arquivo, 'por+eng');
         const chaveLimpa = result.data.text.replace(/[^0-9]/g, '');
-        
-        // Busca TODAS as sequências de 44 dígitos e valida a UF
-        const ufsValidas = Object.keys(estadoNomes);
-        const matches = chaveLimpa.match(/\d{44}/g) || [];
-        
-        // Tenta encontrar uma que começa com UF válida
-        const chaveValida = matches.find(m => ufsValidas.includes(m.slice(0, 2)));
 
-        // Se não achou, tenta deslizar pela string inteira procurando UF válida
-        let chave = chaveValida;
-        if (!chave) {
-            for (let i = 0; i <= chaveLimpa.length - 44; i++) {
-                const candidata = chaveLimpa.slice(i, i + 44);
-                if (ufsValidas.includes(candidata.slice(0, 2))) {
-                    chave = candidata;
-                    break;
-                }
-            }
-        }
+        const chave = encontrarChave(chaveLimpa);
 
         if (chave) {
             echave.value = chave;
@@ -164,6 +147,29 @@ async function lerNota(arquivo) {
         statusOcr.style.color = "orange";
     }
 }
+
+function encontrarChave(str) {
+    const ufsValidas = Object.keys(estadoNomes);
+    const tiposValidos = ["55", "59", "65"];
+
+    for (let i = 0; i <= str.length - 44; i++) {
+        const c = str.slice(i, i + 44);
+        const uf  = c.slice(0, 2);
+        const mes = Number(c.slice(4, 6));
+        const yy  = c.slice(20, 22);
+
+        if (
+            ufsValidas.includes(uf) &&
+            mes >= 1 && mes <= 12 &&
+            tiposValidos.includes(yy)
+        ) {
+            return c;
+        }
+    }
+    return null;
+}
+
+
 // --- ARRASTAR E SOLTAR ---
 ['dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, (e) => {

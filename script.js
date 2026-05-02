@@ -193,13 +193,21 @@ async function lerNota(arquivo) {
     statusOcr.style.color = "blue";
 
     try {
+        // Tentativa 1: com pré-processamento
         const imagemProcessada = await preprocessarImagem(arquivo);
-        const result = await Tesseract.recognize(imagemProcessada, 'por+eng', {
+        const result1 = await Tesseract.recognize(imagemProcessada, 'por+eng', {
             tessedit_pageseg_mode: '1'
         });
+        let chave = encontrarChave(result1.data.text.replace(/[^0-9]/g, ''));
 
-        const chaveLimpa = result.data.text.replace(/[^0-9]/g, '');
-        const chave = encontrarChave(chaveLimpa);
+        // Tentativa 2: sem pré-processamento, se a primeira falhou
+        if (!chave) {
+            statusOcr.textContent = "⏳ Tentando segunda leitura...";
+            const result2 = await Tesseract.recognize(arquivo, 'por+eng', {
+                tessedit_pageseg_mode: '6' // modo bloco de texto único
+            });
+            chave = encontrarChave(result2.data.text.replace(/[^0-9]/g, ''));
+        }
 
         if (chave) {
             echave.value = chave;
@@ -207,7 +215,8 @@ async function lerNota(arquivo) {
             statusOcr.style.color = "green";
             verificar();
         } else {
-            statusOcr.textContent = "❌ Chave não encontrada. Tente foto mais nítida.";
+            statusOcr.innerHTML = `❌ Não consegui ler a chave automaticamente.<br>
+            <small style="color:#888">Digite ou cole a chave manualmente no campo acima.</small>`;
             statusOcr.style.color = "red";
         }
     } catch (erro) {

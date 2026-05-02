@@ -155,9 +155,9 @@ async function lerNota(arquivo) {
     statusOcr.style.color = "blue";
 
     try {
-        const imagemProcessada = await preprocessarImagem(arquivo);
-        const result = await Tesseract.recognize(imagemProcessada, 'por+eng');
+        const result = await Tesseract.recognize(arquivo, 'por+eng');
         const chaveLimpa = result.data.text.replace(/[^0-9]/g, '');
+
         const chave = encontrarChave(chaveLimpa);
 
         if (chave) {
@@ -166,7 +166,7 @@ async function lerNota(arquivo) {
             statusOcr.style.color = "green";
             verificar();
         } else {
-            statusOcr.textContent = "❌ Chave não encontrada. Tente uma foto mais nítida.";
+            statusOcr.textContent = "❌ Chave de 44 dígitos não encontrada.";
             statusOcr.style.color = "red";
         }
     } catch (erro) {
@@ -174,6 +174,29 @@ async function lerNota(arquivo) {
         statusOcr.textContent = "⚠️ Erro ao processar imagem.";
         statusOcr.style.color = "orange";
     }
+}
+
+function encontrarChave(str) {
+    const ufsValidas = Object.keys(estadoNomes);
+    const tiposValidos = ["55", "59", "65"];
+
+    for (let i = 0; i <= str.length - 44; i++) {
+        const c = str.slice(i, i + 44);
+        const uf  = c.slice(0, 2);
+        const ano = Number(c.slice(2, 4));
+        const mes = Number(c.slice(4, 6));
+        const yy  = c.slice(20, 22);
+
+        if (
+            ufsValidas.includes(uf) &&
+            ano >= 6 && ano <= 30 &&   // ano entre 2006 e 2030
+            mes >= 1 && mes <= 12 &&
+            tiposValidos.includes(yy)
+        ) {
+            return c;
+        }
+    }
+    return null;
 }
 
 

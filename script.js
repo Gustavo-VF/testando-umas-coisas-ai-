@@ -121,38 +121,21 @@ const universalLink2 = "https://meudanfe.com.br/#";
 
 // --- FUNÇÃO PARA PROCESSAR COM IA ---
 async function lerNotaComIA(arquivo) {
-    if (!arquivo) return;
-
-    // Se a função ainda não existe, apenas avisa e para
-    if (typeof window.perguntarIA !== 'function') {
-        statusOcr.textContent = "⏳ IA ainda está baixando... Aguarde o sinal de 'Pronta'.";
-        statusOcr.style.color = "orange";
-        return; 
-    }
-
-    statusOcr.textContent = "⏳ IA analisando nota...";
-    statusOcr.style.color = "blue";
-
-    try {
-        const urlImagem = URL.createObjectURL(arquivo);
-        const respostaIA = await window.perguntarIA(urlImagem);
-        URL.revokeObjectURL(urlImagem);
-
-        const chaveLimpa = respostaIA.replace(/[^0-9]/g, '');
-        const match = chaveLimpa.match(/\d{44}/);
-
-        if (match) {
-            echave.value = match[0];
-            statusOcr.textContent = "✅ Chave identificada!";
-            statusOcr.style.color = "green";
-            verificar();
-        } else {
-            statusOcr.textContent = "❌ IA não encontrou a chave de 44 dígitos.";
-            statusOcr.style.color = "red";
-        }
-    } catch (erro) {
-        console.error("Erro no OCR:", erro);
-        statusOcr.textContent = "⚠️ Erro ao processar imagem.";
+    statusOcr.textContent = "⏳ Lendo imagem...";
+    const urlImagem = URL.createObjectURL(arquivo);
+    
+    const { data: { text } } = await Tesseract.recognize(urlImagem, 'por+eng');
+    URL.revokeObjectURL(urlImagem);
+    
+    const chaveLimpa = text.replace(/[^0-9]/g, '');
+    const match = chaveLimpa.match(/\d{44}/);
+    
+    if (match) {
+        echave.value = match[0];
+        statusOcr.textContent = "✅ Chave identificada!";
+        verificar();
+    } else {
+        statusOcr.textContent = "❌ Chave não encontrada na imagem.";
     }
 }
 

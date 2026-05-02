@@ -108,6 +108,8 @@ const estadoNomes = {
 // ========================================================
 
 // --- VARIÁREIS DE INTERFACE (Declarar apenas uma vez) ---
+javascript// ========================================================
+
 const bColar = document.getElementById("bColar");
 const bColarImagem = document.getElementById("bColarImagem");
 const echave = document.getElementById("chave");
@@ -115,33 +117,37 @@ const inputImagem = document.getElementById("inputImagem");
 const statusOcr = document.getElementById("statusOcr");
 const dropZone = document.getElementById("dropZone");
 
-// --- CONFIGURAÇÕES DOS LINKS ---
 const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
 const universalLink2 = "https://meudanfe.com.br/#";
 
-// --- FUNÇÃO PARA PROCESSAR COM IA ---
-async function lerNotaComIA(arquivo) {
-    statusOcr.textContent = "⏳ Lendo imagem...";
-    const urlImagem = URL.createObjectURL(arquivo);
-    
-    const { data: { text } } = await Tesseract.recognize(urlImagem, 'por+eng');
-    URL.revokeObjectURL(urlImagem);
-    
-    const chaveLimpa = text.replace(/[^0-9]/g, '');
-    const match = chaveLimpa.match(/\d{44}/);
-    
-    if (match) {
-        echave.value = match[0];
-        statusOcr.textContent = "✅ Chave identificada!";
-        verificar();
-    } else {
-        statusOcr.textContent = "❌ Chave não encontrada na imagem.";
+// --- FUNÇÃO CENTRAL DE LEITURA DE IMAGEM ---
+async function lerNota(arquivo) {
+    if (!arquivo) return;
+    statusOcr.textContent = "⏳ Lendo imagem... aguarde.";
+    statusOcr.style.color = "blue";
+
+    try {
+        const result = await Tesseract.recognize(arquivo, 'por+eng');
+        const chaveLimpa = result.data.text.replace(/[^0-9]/g, '');
+        const match = chaveLimpa.match(/\d{44}/);
+
+        if (match) {
+            echave.value = match[0];
+            statusOcr.textContent = "✅ Chave identificada!";
+            statusOcr.style.color = "green";
+            verificar();
+        } else {
+            statusOcr.textContent = "❌ Chave de 44 dígitos não encontrada.";
+            statusOcr.style.color = "red";
+        }
+    } catch (erro) {
+        console.error(erro);
+        statusOcr.textContent = "⚠️ Erro ao processar imagem.";
+        statusOcr.style.color = "orange";
     }
 }
 
-// --- EVENTOS DE INTERAÇÃO ---
-
-// Arrastar e soltar
+// --- ARRASTAR E SOLTAR ---
 ['dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, (e) => {
         e.preventDefault();
@@ -155,36 +161,37 @@ dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover
 dropZone.addEventListener('drop', (e) => {
     dropZone.classList.remove('dragover');
     const arquivo = e.dataTransfer.files[0];
-    lerNotaComIA(arquivo); // Corrigido para o nome certo
+    lerNota(arquivo);
 });
 
-// Botão Colar Imagem
+// --- BOTÃO COLAR IMAGEM ---
 bColarImagem.onclick = async () => {
     try {
         const itens = await navigator.clipboard.read();
         for (const item of itens) {
             if (item.types.some(type => type.startsWith('image/'))) {
                 const blob = await item.getType(item.types.find(t => t.startsWith('image/')));
-                lerNotaComIA(blob); // Corrigido
+                lerNota(blob);
                 return;
             }
         }
+        alert("Nenhuma imagem encontrada na área de transferência.");
     } catch (err) {
         alert("Erro ao acessar clipboard. Tente Ctrl+V.");
     }
 };
 
-// Clique no input
-inputImagem.addEventListener("change", (e) => lerNotaComIA(e.target.files[0]));
+// --- CLIQUE NO INPUT DE ARQUIVO ---
+inputImagem.addEventListener("change", (e) => lerNota(e.target.files[0]));
 
-// Botão Colar Texto
+// --- COLAR TEXTO ---
 bColar.onclick = async () => {
     try {
         const texto = await navigator.clipboard.readText();
         echave.value = texto.replace(/[^0-9]/g, '');
         verificar();
     } catch (erro) {
-        alert("Não foi possível colar o texto.");
+        alert("Não foi possível colar o conteúdo");
     }
 }
 
@@ -195,14 +202,14 @@ function verificar() {
     const idsParaEsconder = ["link1", "link2", "botoes1", "botoes2", "mensagem", "resultado"];
     idsParaEsconder.forEach(id => {
         const el = document.getElementById(id);
-        if(el) el.style.display = "none";
+        if (el) el.style.display = "none";
     });
 
     let chave = echave.value.replace(/[^0-9]/g, '');
 
     if (chave.length < 44) return;
     if (chave.length > 44) {
-        escreverMensage("Chave invalida. Verifique os dígitos.");
+        escreverMensage("Chave inválida. Verifique os dígitos.");
         return;
     }
 
@@ -215,12 +222,12 @@ function verificar() {
     const numero = chave.slice(25, 34);
 
     if (Number(mes) < 1 || Number(mes) > 12) {
-        escreverMensage("Chave invalida. Mês inválido.");
+        escreverMensage("Chave inválida. Mês inválido.");
         return;
     }
 
     if (!estadoNomes[uf]) {
-        escreverMensage("Chave invalida. UF não reconhecida.");
+        escreverMensage("Chave inválida. UF não reconhecida.");
         return;
     }
 
@@ -231,7 +238,7 @@ function verificar() {
     } else if (yy === "65") {
         exibirResultadoSimples(nfceLinks[uf]);
     } else {
-        escreverMensage("Chave invalida. Tipo de documento desconhecido.");
+        escreverMensage("Chave inválida. Tipo de documento desconhecido.");
         return;
     }
 
@@ -264,7 +271,7 @@ function exibirResultadoNfe(url1, url2) {
 }
 
 function abrirEcopiar(url) {
-    if(!url || url === "#") return;
+    if (!url || url === "#") return;
     let chave = echave.value.replace(/[^0-9]/g, '');
     navigator.clipboard.writeText(chave);
     window.open(url, '_blank');

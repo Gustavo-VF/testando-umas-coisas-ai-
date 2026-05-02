@@ -4,6 +4,12 @@ body {
     padding: 0;
 }
 
+.input-group {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -76,6 +82,7 @@ body {
     height: auto;
     font-size: 1.5rem;
     padding-left: 10px;
+    box-sizing: border-box;
 }
 
 .inputSefaz button {
@@ -169,13 +176,37 @@ li {
 }
 
 .drop-zone {
-    margin-top: 20px;
+    margin-top: 8px;
     border: 2px dashed #ccc;
-    padding: 30px;
     border-radius: 8px;
-    text-align: center;
     background: #fdfdfd;
     transition: all 0.3s ease;
+
+    /* Alinha com o input-group */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+
+    /* Mesma largura do conjunto input + botão */
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.drop-label {
+    font-size: 1.5rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-colar-img {
+    font-size: 1.5rem;
+    padding-left: 10px;
+    padding-right: 10px;
+    white-space: nowrap;
 }
 
 .drop-zone.dragover {
@@ -185,8 +216,10 @@ li {
 }
 
 .status-texto {
-    margin-top: 15px;
+    margin: 0;
     font-weight: bold;
+    white-space: nowrap;
+    font-size: 1rem;
 }
 
 

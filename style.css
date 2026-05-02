@@ -3,25 +3,21 @@ body {
     margin: 0;
     padding: 0;
 }
-
+* {
+    margin: 0;
+    padding: 0;
+}
 .input-group {
     display: flex;
     justify-content: center;
     gap: 0;
 }
-
-* {
-    margin: 0;
-    padding: 0;
-}
-
 .menuBar {
     display: flex;
     flex-direction: row;
     background-color: teal;
     padding: 10px;
 }
-
 .navMenu {
     display: flex;
     margin-right: 10vw;
@@ -29,13 +25,11 @@ body {
     align-items: center;
     padding-left: 50px;
 }
-
 .navMenu a {
     font-size: x-large;
     color: bisque;
     text-decoration: none;
 }
-
 .navMenu a:hover {
     font-size: xx-large;
     background-color: bisque;
@@ -44,7 +38,6 @@ body {
     padding-right: 20px;
     border-radius: 10px;
 }
-
 .layout {
     display: flex;
     flex-direction: column;
@@ -53,7 +46,6 @@ body {
     height: auto;
     align-items: center;
 }
-
 .divPadrao {
     background-color: #F3EFE7;
     width: 75vw;
@@ -62,21 +54,15 @@ body {
     border-radius: 20px;
     margin-top: 20px;
 }
-
 .inputSefaz {
     text-align: center;
-
 }
-
 .inputSefaz h1 {
     margin-top: 20px;
-
 }
-
 .inputSefaz h2 {
     margin-bottom: 50px;
 }
-
 .inputSefaz input {
     width: 45vw;
     height: auto;
@@ -84,13 +70,11 @@ body {
     padding-left: 10px;
     box-sizing: border-box;
 }
-
 .inputSefaz button {
     font-size: 1.5rem;
     padding-left: 10px;
     padding-right: 10px;
 }
-
 .resultado {
     margin-top: 50px;
     margin-bottom: 50px;
@@ -99,7 +83,6 @@ body {
     gap: 5vw 5vw;
     font-size: 1.5rem;
 }
-
 .link1 {
     display: flex;
     flex-direction: column;
@@ -108,7 +91,6 @@ body {
     align-items: baseline;
     margin-left: 50px;
 }
-
 .link2 {
     display: flex;
     flex-direction: column;
@@ -117,7 +99,6 @@ body {
     align-items: baseline;
     margin-left: 50px;
 }
-
 .botoes1 {
     display: flex;
     gap: 20px;
@@ -125,7 +106,6 @@ body {
     margin-top: 20px;
     margin-left: 70px;
 }
-
 .botoes2 {
     display: flex;
     gap: 20px;
@@ -133,7 +113,6 @@ body {
     margin-top: 20px;
     margin-left: 70px;
 }
-
 #link1,
 #link2,
 #botoes1,
@@ -142,26 +121,20 @@ body {
 #resultado {
     display: none;
 }
-
 .on-Infos {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-top: 10vw;
     border-top: 4px solid #ba7f7fcd;
-    ;
-
 }
-
 .infos {
     width: auto;
 }
-
 li {
     list-style: none;
     font-size: 2rem;
 }
-
 .rodape {
     width: 98%;
     justify-items: center;
@@ -170,86 +143,73 @@ li {
     text-align: center;
     margin-top: 20px;
 }
-
 .rodape a {
     text-decoration: none;
 }
 
+/* DROP ZONE */
 .drop-zone {
     margin-top: 8px;
     border: 2px dashed #ccc;
     border-radius: 8px;
     background: #fdfdfd;
     transition: all 0.3s ease;
-
-    /* Alinha com o input-group */
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
     padding: 10px;
-
-    /* Mesma largura do conjunto input + botão */
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
 }
-
+.drop-zone-row {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+}
 .drop-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.5rem;
     cursor: pointer;
-    white-space: nowrap;
+    width: 45vw;
+    border: 1px solid #ccc;
+    padding-left: 10px;
+    box-sizing: border-box;
+    background: white;
 }
-
 .btn-colar-img {
     font-size: 1.5rem;
     padding-left: 10px;
     padding-right: 10px;
     white-space: nowrap;
 }
-
 .drop-zone.dragover {
     border-color: #2196F3;
     background-color: #e3f2fd;
     transform: scale(1.02);
 }
-
 .status-texto {
-    margin: 0;
+    margin-top: 8px;
     font-weight: bold;
-    white-space: nowrap;
     font-size: 1rem;
+    text-align: center;
 }
 
-
-
-
-
-
-
-
-
-
-
 #mensagem[style*="block"] {
-
     width: auto;
     position: fixed;
     top: 0%;
     left: 50%;
     transform: translate(-50%);
-    animation:
-        descerMensagem 1s ease;
-
+    animation: descerMensagem 1s ease;
 }
-
 @keyframes descerMensagem {
     from {
         opacity: 0;
         transform: translate(-50%, -120%);
     }
-
     to {
         opacity: 1;
         transform: translate(-50%, -0%);

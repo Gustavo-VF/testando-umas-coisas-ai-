@@ -121,34 +121,73 @@ const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.a
 const universalLink2 = "https://meudanfe.com.br/#";
 
 // --- FUNÇÃO CENTRAL DE LEITURA DE IMAGEM ---
+// --- PRÉ-PROCESSAMENTO ---
 async function preprocessarImagem(arquivo) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const img = new Image();
         const url = URL.createObjectURL(arquivo);
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            // Aumenta a escala 2x para melhorar OCR
-            canvas.width = img.width * 2;
-            canvas.height = img.height * 2;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            // Converte para escala de cinza e aumenta contraste
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            for (let i = 0; i < data.length; i += 4) {
-                const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-                const contraste = gray > 128 ? 255 : 0; // binariza
-                data[i] = data[i+1] = data[i+2] = contraste;
-            }
-            ctx.putImageData(imageData, 0, 0);
+        
+        img.onerror = () => {
             URL.revokeObjectURL(url);
-            canvas.toBlob(resolve, 'image/png');
+            reject(new Error("Não foi possível carregar a imagem."));
         };
+
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width * 2;
+                canvas.height = img.height * 2;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+                    const contraste = gray > 128 ? 255 : 0;
+                    data[i] = data[i+1] = data[i+2] = contraste;
+                }
+                ctx.putImageData(imageData, 0, 0);
+                URL.revokeObjectURL(url);
+                canvas.toBlob((blob) => {
+                    if (blob) resolve(blob);
+                    else reject(new Error("Falha ao converter canvas para blob."));
+                }, 'image/png');
+            } catch (e) {
+                URL.revokeObjectURL(url);
+                reject(e);
+            }
+        };
+
         img.src = url;
     });
 }
 
+// --- ENCONTRAR CHAVE ---
+function encontrarChave(str) {
+    const ufsValidas = Object.keys(estadoNomes);
+    const tiposValidos = ["55", "59", "65"];
+
+    for (let i = 0; i <= str.length - 44; i++) {
+        const c = str.slice(i, i + 44);
+        const uf  = c.slice(0, 2);
+        const ano = Number(c.slice(2, 4));
+        const mes = Number(c.slice(4, 6));
+        const yy  = c.slice(20, 22);
+
+        if (
+            ufsValidas.includes(uf) &&
+            ano >= 6 && ano <= 30 &&
+            mes >= 1 && mes <= 12 &&
+            tiposValidos.includes(yy)
+        ) {
+            return c;
+        }
+    }
+    return null;
+}
+
+// --- LER NOTA ---
 async function lerNota(arquivo) {
     if (!arquivo) return;
     statusOcr.textContent = "⏳ Lendo imagem... aguarde.";
@@ -173,33 +212,10 @@ async function lerNota(arquivo) {
             statusOcr.style.color = "red";
         }
     } catch (erro) {
-        console.error(erro);
+        console.error("Erro detalhado:", erro.message, erro);
         statusOcr.textContent = "⚠️ Erro ao processar imagem.";
         statusOcr.style.color = "orange";
     }
-}
-
-function encontrarChave(str) {
-    const ufsValidas = Object.keys(estadoNomes);
-    const tiposValidos = ["55", "59", "65"];
-
-    for (let i = 0; i <= str.length - 44; i++) {
-        const c = str.slice(i, i + 44);
-        const uf  = c.slice(0, 2);
-        const ano = Number(c.slice(2, 4));
-        const mes = Number(c.slice(4, 6));
-        const yy  = c.slice(20, 22);
-
-        if (
-            ufsValidas.includes(uf) &&
-            ano >= 6 && ano <= 30 &&   // ano entre 2006 e 2030
-            mes >= 1 && mes <= 12 &&
-            tiposValidos.includes(yy)
-        ) {
-            return c;
-        }
-    }
-    return null;
 }
 
 

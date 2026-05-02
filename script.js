@@ -155,9 +155,12 @@ async function lerNota(arquivo) {
     statusOcr.style.color = "blue";
 
     try {
-        const result = await Tesseract.recognize(arquivo, 'por+eng');
-        const chaveLimpa = result.data.text.replace(/[^0-9]/g, '');
+        const imagemProcessada = await preprocessarImagem(arquivo);
+        const result = await Tesseract.recognize(imagemProcessada, 'por+eng', {
+            tessedit_pageseg_mode: '1'
+        });
 
+        const chaveLimpa = result.data.text.replace(/[^0-9]/g, '');
         const chave = encontrarChave(chaveLimpa);
 
         if (chave) {
@@ -166,7 +169,7 @@ async function lerNota(arquivo) {
             statusOcr.style.color = "green";
             verificar();
         } else {
-            statusOcr.textContent = "❌ Chave de 44 dígitos não encontrada.";
+            statusOcr.textContent = "❌ Chave não encontrada. Tente foto mais nítida.";
             statusOcr.style.color = "red";
         }
     } catch (erro) {

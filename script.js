@@ -108,7 +108,7 @@ const estadoNomes = {
 // ========================================================
 
 // --- VARIÁREIS DE INTERFACE (Declarar apenas uma vez) ---
-javascript// ========================================================
+// ========================================================
 
 const bColar = document.getElementById("bColar");
 const bColarImagem = document.getElementById("bColarImagem");

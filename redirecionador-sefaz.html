@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sefaz · Redirecionador</title>
+<script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f10;
+    --surface: #1a1a1c;
+    --surface2: #222225;
+    --border: #2e2e32;
+    --border-accent: #3d6b5e;
+    --teal: #2dd4a0;
+    --teal-dim: #1a7a5e;
+    --teal-glow: rgba(45, 212, 160, 0.15);
+    --red: #f87171;
+    --yellow: #facc15;
+    --text: #e8e8ea;
+    --text-muted: #6b6b72;
+    --text-dim: #9a9aa4;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+    --radius: 12px;
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(45,212,160,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,15,16,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 60px;
+  }
+
+  .nav-brand {
+    font-family: var(--display);
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--teal);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav-brand::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--teal);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--teal);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 4px;
+  }
+
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: var(--transition);
+    letter-spacing: 0.02em;
+  }
+
+  .nav-links a:hover, .nav-links a.active {
+    color: var(--teal);
+    border-color: var(--border-accent);
+    background: var(--teal-glow);
+  }
+
+  /* MAIN */
+  main {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px 80px;
+    gap: 20px;
+    max-width: 860px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 20px 0 8px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--teal);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+    color: var(--text);
+  }
+
+  .hero h1 span { color: var(--teal); }
+
+  .hero-sub {
+    margin-top: 12px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-family: var(--mono);
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    width: 100%;
+    animation: fadeUp 0.6s ease both;
+    transition: border-color var(--transition);
+  }
+
+  .card:hover { border-color: var(--border-accent); }
+
+  .card-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-label::before {
+    content: '';
+    display: inline-block;
+    width: 16px; height: 1px;
+    background: var(--teal);
+  }
+
+  /* INPUT AREA */
+  .input-row {
+    display: flex;
+    gap: 0;
+    width: 100%;
+  }
+
+  .input-row input {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-right: none;
+    border-radius: var(--radius) 0 0 var(--radius);
+    padding: 14px 18px;
+    color: var(--text);
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    letter-spacing: 0.04em;
+  }
+
+  .input-row input::placeholder { color: var(--text-muted); }
+
+  .input-row input:focus {
+    border-color: var(--teal-dim);
+    box-shadow: inset 0 0 0 1px var(--teal-dim);
+  }
+
+  .btn-paste {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    background: var(--teal);
+    color: #0a1a14;
+    border: none;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 0 22px;
+    cursor: pointer;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    transition: background var(--transition), transform var(--transition);
+    white-space: nowrap;
+  }
+
+  .btn-paste:hover { background: #4de8b8; }
+  .btn-paste:active { transform: scale(0.97); }
+
+  /* COUNTER */
+  .char-counter {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 8px;
+    transition: color var(--transition);
+  }
+
+  .char-counter.valid { color: var(--teal); }
+  .char-counter.error { color: var(--red); }
+
+  /* RESULTADO */
+  .result-card {
+    display: none;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .result-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .result-item .rkey {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .result-item .rval {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    color: var(--teal);
+    font-weight: 500;
+  }
+
+  /* LINK BOXES */
+  .link-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+  }
+
+  .link-tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    background: var(--teal-glow);
+    color: var(--teal);
+    border: 1px solid var(--border-accent);
+    border-radius: 4px;
+    padding: 2px 8px;
+    white-space: nowrap;
+    letter-spacing: 0.06em;
+  }
+
+  .link-box a {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    word-break: break-all;
+    flex: 1;
+    transition: color var(--transition);
+  }
+
+  .link-box a:hover { color: var(--teal); text-decoration: underline; }
+
+  /* ACTION BUTTONS */
+  .action-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    padding: 9px 18px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+
+  .btn-primary {
+    background: var(--teal);
+    color: #0a1a14;
+    border-color: var(--teal);
+  }
+
+  .btn-primary:hover { background: #4de8b8; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+  }
+
+  .btn-ghost:hover {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--border-accent);
+  }
+
+  .btn:active { transform: scale(0.97) !important; }
+
+  /* OCR ZONE */
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    background: var(--surface2);
+    padding: 24px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    position: relative;
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--teal-dim);
+    background: var(--teal-glow);
+  }
+
+  .drop-zone.dragover { transform: scale(1.01); }
+
+  .drop-zone-label {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .drop-icon {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .ocr-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .status-ocr {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    margin-top: 10px;
+    color: var(--text-muted);
+    min-height: 18px;
+    transition: color var(--transition);
+  }
+
+  .status-ocr.loading { color: var(--yellow); }
+  .status-ocr.success { color: var(--teal); }
+  .status-ocr.error { color: var(--red); }
+
+  /* LEGENDA */
+  .legenda {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 4px;
+  }
+
+  .legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  .legenda-badge {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    color: var(--teal);
+    letter-spacing: 0.06em;
+  }
+
+  /* TOAST */
+  #toast {
+    position: fixed;
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-12px);
+    background: var(--surface);
+    border: 1px solid var(--border-accent);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 200;
+    white-space: nowrap;
+  }
+
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  #toast.toast-error { border-color: var(--red); color: var(--red); }
+  #toast.toast-success { border-color: var(--teal); color: var(--teal); }
+
+  /* FOOTER */
+  footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  footer span { color: var(--text-dim); }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 2px;
+    transition: width 0.2s ease;
+    width: 0%;
+  }
+
+  /* BADGE TIPO */
+  .tipo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid;
+    margin-bottom: 16px;
+    letter-spacing: 0.06em;
+  }
+
+  .tipo-nfe { background: rgba(45,212,160,0.1); border-color: var(--teal); color: var(--teal); }
+  .tipo-nfce { background: rgba(250,204,21,0.1); border-color: var(--yellow); color: var(--yellow); }
+  .tipo-sat { background: rgba(248,113,113,0.1); border-color: var(--red); color: var(--red); }
+
+  input[type="file"] { display: none; }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 16px; }
+    main { padding: 32px 16px 60px; }
+    .result-grid { grid-template-columns: 1fr 1fr; }
+    .card { padding: 20px; }
+    footer { flex-direction: column; gap: 8px; text-align: center; }
+    .nav-links a { font-size: 0.7rem; padding: 5px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">SEFAZ · REDIRECT</div>
+  <div class="nav-links">
+    <a href="#" class="active">Sefaz</a>
+    <a href="PesquisaCnpj/cnpj.html">CNPJ</a>
+    <a href="links/links.html">Links</a>
+  </div>
+</nav>
+
+<div id="toast"></div>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-label">// ferramenta interna</div>
+    <h1>Redirecionador <span>Sefaz</span></h1>
+    <p class="hero-sub">Cole a chave · identifique o documento · acesse o portal certo</p>
+  </div>
+
+  <!-- INPUT CARD -->
+  <div class="card" style="animation-delay:0.1s">
+    <div class="card-label">chave de acesso</div>
+
+    <div class="input-row">
+      <input type="text" id="chave" placeholder="44 dígitos (aceita com pontos, traços, espaços...)" autocomplete="off" spellcheck="false">
+      <button class="btn-paste" id="bColar">⌘ Colar</button>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="char-counter" id="charCounter">0 / 44 dígitos</div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="card result-card" id="resultCard">
+    <div id="tipoBadge"></div>
+    <div class="card-label">dados extraídos</div>
+
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="rkey">Estado</div>
+        <div class="rval" id="displayestado">—</div>
+      </div>
+      <div class="result-item">
+        <div class="rkey">Emissão</div>
+        <div class="rval" id="displayemissao">—</div>
+      </div>
+      <div class="result-item">
+        <div class="rkey">Nº Documento</div>
+        <div class="rval" id="displaynumero">—</div>
+      </div>
+      <div class="result-item">
+        <div class="rkey">CNPJ Emitente</div>
+        <div class="rval" id="displaycnpj" style="font-size:0.78rem">—</div>
+      </div>
+      <div class="result-item">
+        <div class="rkey">Série</div>
+        <div class="rval" id="displaysat">—</div>
+      </div>
+      <div class="result-item">
+        <div class="rkey">Modelo</div>
+        <div class="rval" id="displaymodelo">—</div>
+      </div>
+    </div>
+
+    <div id="linksArea"></div>
+
+    <div class="action-row" id="actionRow"></div>
+  </div>
+
+  <!-- OCR CARD -->
+  <div class="card" style="animation-delay:0.2s">
+    <div class="card-label">leitura por imagem (ocr)</div>
+
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="inputImagem" accept="image/*">
+      <label for="inputImagem">
+        <span class="drop-icon">📄</span>
+        <span class="drop-zone-label">Arraste a nota fiscal aqui ou clique para selecionar</span>
+      </label>
+      <div class="ocr-buttons">
+        <button class="btn btn-ghost" id="bColarImagem">📋 Colar imagem</button>
+      </div>
+      <div class="status-ocr" id="statusOcr">Pronto para ler imagem.</div>
+    </div>
+  </div>
+
+  <!-- LEGENDA -->
+  <div class="card" style="animation-delay:0.3s; padding: 20px 28px;">
+    <div class="card-label">referência · 21º e 22º dígitos</div>
+    <div class="legenda">
+      <div class="legenda-item"><span class="legenda-badge">55</span> NF-e — Nota Fiscal Eletrônica</div>
+      <div class="legenda-item"><span class="legenda-badge">59</span> SAT — Cupom Fiscal Eletrônico</div>
+      <div class="legenda-item"><span class="legenda-badge">65</span> NFC-e — Nota Fiscal ao Consumidor</div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <span>Ferramenta interna · Uso operacional · Não oficial</span>
+  <span>Gustavo Vaz Ferreira</span>
+</footer>
+
+<script>
+// ── DICIONÁRIOS ─────────────────────────────────────────────────────────────
+
+const satLinks = {
+  "11":"https://sistemas.sefaz.ro.gov.br/","12":"https://www.sefaz.ac.gov.br/sat/",
+  "13":"https://sistemas.sefaz.am.gov.br/nfceweb/formConsulta.do","14":"https://www.sefaz.rr.gov.br/nfc-e",
+  "15":"https://app.sefa.pa.gov.br/consulta-nfce/#/consulta","16":"https://www.sefaz.ap.gov.br/sate/seg/SEGf_AcessarFuncao.jsp?cdFuncao=FIS_1261",
+  "17":"http://www.sefaz.to.gov.br/nfce/consulta.jsf","21":"http://www.nfce.sefaz.ma.gov.br/portal/consultarnfce.jsp",
+  "22":"https://www.sefaz.pi.gov.br/nfce/qrcode","23":"https://cfe.sefaz.ce.gov.br/mfe/servicos#/cupom-fiscal",
+  "24":"http://nfce.set.rn.gov.br/consultarNFCe.aspx","25":"https://www.sefaz.pb.gov.br/servirtual/documentos-fiscais/nfc-e/consultar-nfc-e",
+  "26":"http://nfe.sefaz.pe.gov.br/nfe-web/consNfe","27":"https://nfce.sefaz.al.gov.br/consultaNFCe.htm",
+  "28":"https://nfce.sefaz.se.gov.br/portal/portalNoticias.jsp?jsp=barra-menu/servicos/consultaDANFENFCe.htm",
+  "29":"http://nfe.sefaz.ba.gov.br/servicos/nfce/Modulos/Geral/NFCEC_consulta_chave_acesso.aspx",
+  "31":"http://nfce.fazenda.mg.gov.br/portalnfce/sistema/consultaarg.xhtml","32":"http://app.sefaz.es.gov.br/ConsultaNFCe/Default.aspx",
+  "33":"https://consultadfe.fazenda.rj.gov.br/consultaDFe/paginas/consultaChaveAcesso.faces",
+  "35":"https://satsp.fazenda.sp.gov.br/COMSAT/Public/ConsultaPublica/ConsultaPublicaCfe.aspx",
+  "41":"https://sped.fazenda.pr.gov.br/NFCe/webservices/sped/nfce/completa",
+  "42":"https://sat.sef.sc.gov.br/tax.net/Sat.Dfe.NFCe.Web/Consultas/ConsultaPublicaNFCe.aspx",
+  "43":"https://www.sefaz.rs.gov.br/NFE/NFE-NFC.aspx","50":"http://www.dfe.ms.gov.br/nfce/consulta/",
+  "51":"https://www.sefaz.mt.gov.br/nfce/consultanfce","52":"https://www.go.gov.br/servicos/servico/consultar-nota-fiscal-eletronica-pela-chave-de-acesso",
+  "53":"https://ww1.receita.fazenda.df.gov.br/servicos"
+};
+
+const nfceLinks = {
+  "11":"https://www.nfce.sefin.ro.gov.br/","12":"https://www.sefaznet.ac.gov.br/nfce/consulta",
+  "13":"https://sistemas.sefaz.am.gov.br/nfceweb/formConsulta.do","14":"https://www.sefaz.rr.gov.br/nfce/servlet/wp_consulta_nfce",
+  "15":"https://app.sefa.pa.gov.br/consulta-nfce/#/consulta","16":"https://www.sefaz.ap.gov.br/sate/seg/SEGf_AcessarFuncao.jsp?cdFuncao=FIS_1261",
+  "17":"http://www.sefaz.to.gov.br/nfce/consulta.jsf","21":"http://www.nfce.sefaz.ma.gov.br/portal/consultarnfce.jsp",
+  "22":"https://www.sefaz.pi.gov.br/nfce/qrcode","23":"http://nfce.sefaz.ce.gov.br/pages/consultaNota.jsf",
+  "24":"http://nfce.set.rn.gov.br/consultarNFCe.aspx","25":"https://www.sefaz.pb.gov.br/servirtual/documentos-fiscais/nfc-e/consultar-nfc-e",
+  "26":"https://nfce.sefaz.pe.gov.br:444/nfce-web/consNfce","27":"https://nfce.sefaz.al.gov.br/consultaNFCe.htm",
+  "28":"https://nfce.sefaz.se.gov.br/portal/portalNoticias.jsp?jsp=barra-menu/servicos/consultaDANFENFCe.htm",
+  "29":"http://nfe.sefaz.ba.gov.br/servicos/nfce/default.aspx","31":"http://nfce.fazenda.mg.gov.br/portalnfce/sistema/consultaarg.xhtml",
+  "32":"http://app.sefaz.es.gov.br/ConsultaNFCe/Default.aspx","33":"https://consultadfe.fazenda.rj.gov.br/consultaDFe/paginas/consultaChaveAcesso.faces",
+  "35":"https://www.nfce.fazenda.sp.gov.br/NFCeConsultaPublica/Paginas/ConsultaPublica.aspx",
+  "41":"https://sped.fazenda.pr.gov.br/NFCe/webservices/sped/nfce/completa",
+  "42":"https://sat.sef.sc.gov.br/tax.net/Sat.Dfe.NFCe.Web/Consultas/ConsultaPublicaNFCe.aspx",
+  "43":"https://www.sefaz.rs.gov.br/NFE/NFE-NFC.aspx","50":"http://www.dfe.ms.gov.br/nfce/consulta/",
+  "51":"http://www.sefaz.mt.gov.br/nfce/consultanfce","52":"http://nfe.sefaz.go.gov.br/nfeweb/sites/nfe/consulta-completa",
+  "53":"https://ww1.receita.fazenda.df.gov.br/servicos"
+};
+
+const estadoNomes = {
+  "11":"Rondônia","12":"Acre","13":"Amazonas","14":"Roraima","15":"Pará","16":"Amapá","17":"Tocantins",
+  "21":"Maranhão","22":"Piauí","23":"Ceará","24":"Rio Grande do Norte","25":"Paraíba","26":"Pernambuco",
+  "27":"Alagoas","28":"Sergipe","29":"Bahia","31":"Minas Gerais","32":"Espírito Santo","33":"Rio de Janeiro",
+  "35":"São Paulo","41":"Paraná","42":"Santa Catarina","43":"Rio Grande do Sul","50":"Mato Grosso do Sul",
+  "51":"Mato Grosso","52":"Goiás","53":"Distrito Federal"
+};
+
+const meses = ["","Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+const NF_UNIVERSAL  = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
+const NF_UNIVERSAL2 = "https://meudanfe.com.br/#";
+
+// ── ELEMENTOS ────────────────────────────────────────────────────────────────
+
+const echave       = document.getElementById("chave");
+const bColar       = document.getElementById("bColar");
+const bColarImagem = document.getElementById("bColarImagem");
+const inputImagem  = document.getElementById("inputImagem");
+const statusOcr    = document.getElementById("statusOcr");
+const dropZone     = document.getElementById("dropZone");
+const charCounter  = document.getElementById("charCounter");
+const progressFill = document.getElementById("progressFill");
+const resultCard   = document.getElementById("resultCard");
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+
+let toastTimer;
+function showToast(msg, type = "info") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `show toast-${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ""; }, 3200);
+}
+
+// ── CHAVE · INPUT ─────────────────────────────────────────────────────────────
+
+echave.addEventListener("input", () => {
+  echave.value = echave.value.replace(/[^0-9]/g, '');
+  updateCounter();
+  verificar();
+});
+
+bColar.addEventListener("click", async () => {
+  try {
+    const txt = await navigator.clipboard.readText();
+    echave.value = txt.replace(/[^0-9]/g, '');
+    updateCounter();
+    verificar();
+  } catch { showToast("Não foi possível colar.", "error"); }
+});
+
+function updateCounter() {
+  const len = echave.value.length;
+  const pct = Math.min(len / 44, 1) * 100;
+  progressFill.style.width = pct + "%";
+
+  if (len === 0) {
+    charCounter.textContent = "0 / 44 dígitos";
+    charCounter.className = "char-counter";
+  } else if (len < 44) {
+    charCounter.textContent = `${len} / 44 dígitos — faltam ${44 - len}`;
+    charCounter.className = "char-counter";
+  } else if (len === 44) {
+    charCounter.textContent = "✓ 44 dígitos — chave completa";
+    charCounter.className = "char-counter valid";
+  } else {
+    charCounter.textContent = `${len} dígitos — excede em ${len - 44}`;
+    charCounter.className = "char-counter error";
+  }
+}
+
+// ── VERIFICAR ─────────────────────────────────────────────────────────────────
+
+function verificar() {
+  resultCard.style.display = "none";
+
+  const chave = echave.value;
+  if (chave.length !== 44) return;
+
+  const uf     = chave.slice(0, 2);
+  const ano    = chave.slice(2, 4);
+  const mes    = chave.slice(4, 6);
+  const cnpj   = chave.slice(6, 20);
+  const modelo = chave.slice(20, 22);
+  const serie  = chave.slice(22, 25);
+  const numero = chave.slice(25, 34);
+
+  const mesNum = Number(mes);
+  if (mesNum < 1 || mesNum > 12) { showToast("Mês inválido na chave.", "error"); return; }
+  if (!estadoNomes[uf])          { showToast("UF não reconhecida.", "error"); return; }
+  if (!["55","59","65"].includes(modelo)) { showToast("Modelo de documento desconhecido.", "error"); return; }
+
+  // Preencher dados
+  document.getElementById("displayestado").textContent = `${estadoNomes[uf]} (${uf})`;
+  document.getElementById("displayemissao").textContent = `${meses[mesNum]}/20${ano}`;
+  document.getElementById("displaynumero").textContent = String(parseInt(numero, 10));
+  document.getElementById("displaycnpj").textContent = formatCNPJ(cnpj);
+  document.getElementById("displaysat").textContent = serie;
+  document.getElementById("displaymodelo").textContent = modelo;
+
+  // Badge de tipo
+  const tipoBadge = document.getElementById("tipoBadge");
+  if (modelo === "55")      tipoBadge.innerHTML = `<span class="tipo-badge tipo-nfe">● NF-e · Nota Fiscal Eletrônica</span>`;
+  else if (modelo === "59") tipoBadge.innerHTML = `<span class="tipo-badge tipo-sat">● SAT · Cupom Fiscal Eletrônico</span>`;
+  else                      tipoBadge.innerHTML = `<span class="tipo-badge tipo-nfce">● NFC-e · Nota Fiscal ao Consumidor</span>`;
+
+  // Links e botões
+  const linksArea = document.getElementById("linksArea");
+  const actionRow = document.getElementById("actionRow");
+  linksArea.innerHTML = "";
+  actionRow.innerHTML = "";
+
+  if (modelo === "55") {
+    linksArea.innerHTML = buildLinkBox("NF-e Federal", NF_UNIVERSAL) + buildLinkBox("MeuDANFE", NF_UNIVERSAL2);
+    actionRow.innerHTML = `
+      <button class="btn btn-primary" onclick="abrirLink('${NF_UNIVERSAL}')">↗ Abrir NF-e Federal</button>
+      <button class="btn btn-primary" onclick="abrirLink('${NF_UNIVERSAL2}')">↗ Abrir MeuDANFE</button>
+      <button class="btn btn-ghost" onclick="copiarChave()">⎘ Copiar chave</button>`;
+  } else {
+    const url = modelo === "59" ? satLinks[uf] : nfceLinks[uf];
+    const label = modelo === "59" ? "SAT" : "NFC-e";
+    if (url) {
+      linksArea.innerHTML = buildLinkBox(label, url);
+      actionRow.innerHTML = `
+        <button class="btn btn-primary" onclick="abrirLink('${url}')">↗ Abrir portal ${label}</button>
+        <button class="btn btn-ghost" onclick="copiarChave()">⎘ Copiar chave</button>`;
+    } else {
+      linksArea.innerHTML = `<p style="font-family:var(--mono);font-size:0.8rem;color:var(--red)">Portal não mapeado para este estado.</p>`;
+      actionRow.innerHTML = `<button class="btn btn-ghost" onclick="copiarChave()">⎘ Copiar chave</button>`;
+    }
+  }
+
+  resultCard.style.display = "block";
+}
+
+function buildLinkBox(label, url) {
+  return `<div class="link-box">
+    <span class="link-tag">${label}</span>
+    <a href="${url}" target="_blank" rel="noopener">${url}</a>
+  </div>`;
+}
+
+function formatCNPJ(c) {
+  return `${c.slice(0,2)}.${c.slice(2,5)}.${c.slice(5,8)}/${c.slice(8,12)}-${c.slice(12,14)}`;
+}
+
+function abrirLink(url) {
+  copiarChave(false);
+  window.open(url, "_blank");
+}
+
+async function copiarChave(toast = true) {
+  const chave = echave.value.replace(/[^0-9]/g, '');
+  try {
+    await navigator.clipboard.writeText(chave);
+    if (toast) showToast("Chave copiada!", "success");
+  } catch { if (toast) showToast("Erro ao copiar.", "error"); }
+}
+
+// ── OCR ───────────────────────────────────────────────────────────────────────
+
+async function preprocessarImagem(arquivo, graus = 0) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(arquivo);
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Erro ao carregar.")); };
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const rad = graus * Math.PI / 180;
+        if (graus === 90 || graus === 270) {
+          canvas.width = img.height * 2; canvas.height = img.width * 2;
+        } else {
+          canvas.width = img.width * 2; canvas.height = img.height * 2;
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(rad);
+        ctx.drawImage(img, -img.width, -img.height, img.width * 2, img.height * 2);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+          data[i] = data[i+1] = data[i+2] = gray;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Canvas falhou.")), 'image/png');
+      } catch(e) { URL.revokeObjectURL(url); reject(e); }
+    };
+    img.src = url;
+  });
+}
+
+function encontrarChave(str) {
+  const ufs = Object.keys(estadoNomes);
+  const modelos = ["55","59","65"];
+  for (let i = 0; i <= str.length - 44; i++) {
+    const c = str.slice(i, i + 44);
+    const uf = c.slice(0, 2), ano = Number(c.slice(2, 4)), mes = Number(c.slice(4, 6)), mod = c.slice(20, 22);
+    if (ufs.includes(uf) && ano >= 6 && ano <= 35 && mes >= 1 && mes <= 12 && modelos.includes(mod)) return c;
+  }
+  return null;
+}
+
+function setOcrStatus(msg, type = "") {
+  statusOcr.textContent = msg;
+  statusOcr.className = `status-ocr ${type}`;
+}
+
+async function lerNota(arquivo) {
+  if (!arquivo) return;
+  setOcrStatus("⏳ Processando imagem...", "loading");
+
+  try {
+    for (const graus of [0, 90, 180, 270]) {
+      if (graus > 0) setOcrStatus(`⏳ Tentando rotação ${graus}°...`, "loading");
+      const blob = await preprocessarImagem(arquivo, graus);
+      const result = await Tesseract.recognize(blob, 'por+eng', { tessedit_pageseg_mode: '6' });
+      const chave = encontrarChave(result.data.text.replace(/[^0-9]/g, ''));
+      if (chave) {
+        echave.value = chave;
+        updateCounter();
+        verificar();
+        const msg = graus > 0 ? `✓ Chave encontrada (imagem ${graus}° rotacionada)` : "✓ Chave identificada com sucesso!";
+        setOcrStatus(msg, "success");
+        showToast("Chave lida da imagem!", "success");
+        return;
+      }
+    }
+    setOcrStatus("✗ Chave não encontrada. Cole manualmente.", "error");
+  } catch(e) {
+    console.error(e);
+    setOcrStatus("⚠ Erro ao processar imagem.", "error");
+  }
+}
+
+// ── DRAG & DROP ───────────────────────────────────────────────────────────────
+
+['dragover','dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }));
+dropZone.addEventListener('dragover',  () => dropZone.classList.add('dragover'));
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => { dropZone.classList.remove('dragover'); lerNota(e.dataTransfer.files[0]); });
+inputImagem.addEventListener("change", e => lerNota(e.target.files[0]));
+
+bColarImagem.addEventListener("click", async () => {
+  try {
+    const items = await navigator.clipboard.read();
+    for (const item of items) {
+      if (item.types.some(t => t.startsWith('image/'))) {
+        const blob = await item.getType(item.types.find(t => t.startsWith('image/')));
+        lerNota(blob); return;
+      }
+    }
+    showToast("Nenhuma imagem no clipboard.", "error");
+  } catch { showToast("Permissão negada ao clipboard.", "error"); }
+});
+</script>
+</body>
+</html>

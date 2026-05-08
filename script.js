@@ -1,5 +1,5 @@
-// ── DICIONÁRIOS ──────────────────────────────────────────────────────────────
-
+// ======================================================
+// MANTENHA SEUS DICIONÁRIOS AQUI (satLinks, nfceLinks, etc)
 const satLinks = {
     "11": "https://sistemas.sefaz.ro.gov.br/",
     "12": "https://www.sefaz.ac.gov.br/sat/",
@@ -60,230 +60,68 @@ const nfceLinks = {
     "53": "https://ww1.receita.fazenda.df.gov.br/servicos"
 };
 
+
 const mesNome = {
-    "01":"Jan","02":"Fev","03":"Mar","04":"Abr",
-    "05":"Mai","06":"Jun","07":"Jul","08":"Ago",
-    "09":"Set","10":"Out","11":"Nov","12":"Dez"
+    "01": "Jan",
+    "02": "Fev",
+    "03": "Mar",
+    "04": "Abr",
+    "05": "Mai",
+    "06": "Jun",
+    "07": "Jul",
+    "08": "Ago",
+    "09": "Set",
+    "10": "Out",
+    "11": "Nov",
+    "12": "Dez"
 };
-
 const estadoNomes = {
-    "11":"Rondônia","12":"Acre","13":"Amazonas","14":"Roraima",
-    "15":"Pará","16":"Amapá","17":"Tocantins","21":"Maranhão",
-    "22":"Piauí","23":"Ceará","24":"Rio Grande do Norte","25":"Paraíba",
-    "26":"Pernambuco","27":"Alagoas","28":"Sergipe","29":"Bahia",
-    "31":"Minas Gerais","32":"Espírito Santo","33":"Rio de Janeiro",
-    "35":"São Paulo","41":"Paraná","42":"Santa Catarina",
-    "43":"Rio Grande do Sul","50":"Mato Grosso do Sul",
-    "51":"Mato Grosso","52":"Goiás","53":"Distrito Federal"
+    "11": "Rondônia",
+    "12": "Acre",
+    "13": "Amazonas",
+    "14": "Roraima",
+    "15": "Pará",
+    "16": "Amapá",
+    "17": "Tocantins",
+    "21": "Maranhão",
+    "22": "Piauí",
+    "23": "Ceará",
+    "24": "Rio Grande do Norte",
+    "25": "Paraíba",
+    "26": "Pernambuco",
+    "27": "Alagoas",
+    "28": "Sergipe",
+    "29": "Bahia",
+    "31": "Minas Gerais",
+    "32": "Espírito Santo",
+    "33": "Rio de Janeiro",
+    "35": "São Paulo",
+    "41": "Paraná",
+    "42": "Santa Catarina",
+    "43": "Rio Grande do Sul",
+    "50": "Mato Grosso do Sul",
+    "51": "Mato Grosso",
+    "52": "Goiás",
+    "53": "Distrito Federal"
 };
 
-// ── CONSTANTES ────────────────────────────────────────────────────────────────
+// ========================================================
 
-const universalLink  = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
+// --- VARIÁREIS DE INTERFACE (Declarar apenas uma vez) ---
+// ========================================================
+
+const bColar = document.getElementById("bColar");
+const bColarImagem = document.getElementById("bColarImagem");
+const echave = document.getElementById("chave");
+const inputImagem = document.getElementById("inputImagem");
+const statusOcr = document.getElementById("statusOcr");
+const dropZone = document.getElementById("dropZone");
+
+const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
 const universalLink2 = "https://meudanfe.com.br/#";
 
-// ── ELEMENTOS ─────────────────────────────────────────────────────────────────
-
-const echave       = document.getElementById("chave");
-const bColar       = document.getElementById("bColar");
-const bColarImagem = document.getElementById("bColarImagem");
-const inputImagem  = document.getElementById("inputImagem");
-const statusOcr    = document.getElementById("statusOcr");
-const dropZone     = document.getElementById("dropZone");
-const charInfo     = document.getElementById("charInfo");
-
-// ── TOAST ─────────────────────────────────────────────────────────────────────
-
-let toastTimer = null;
-
-function escreverMensagem(msg, tipo = "info") {
-    const el = document.getElementById("mensagem");
-    el.textContent = msg;
-    el.className = "toast toast-" + tipo;
-    el.style.display = "block";
-
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-        el.style.display = "none";
-        el.className = "toast";
-    }, 3500);
-}
-
-// ── CONTADOR DE DÍGITOS ───────────────────────────────────────────────────────
-
-function atualizarContador() {
-    const len = echave.value.length;
-
-    if (len === 0) {
-        charInfo.textContent = "0 / 44 dígitos";
-        charInfo.className = "char-info";
-    } else if (len < 44) {
-        charInfo.textContent = `${len} / 44 dígitos — faltam ${44 - len}`;
-        charInfo.className = "char-info";
-    } else if (len === 44) {
-        charInfo.textContent = "✓ 44 dígitos — chave completa";
-        charInfo.className = "char-info valido";
-    } else {
-        charInfo.textContent = `${len} dígitos — excede em ${len - 44}`;
-        charInfo.className = "char-info erro";
-    }
-}
-
-// ── FORMATAR CNPJ ─────────────────────────────────────────────────────────────
-
-function formatarCNPJ(cnpj) {
-    return `${cnpj.slice(0,2)}.${cnpj.slice(2,5)}.${cnpj.slice(5,8)}/${cnpj.slice(8,12)}-${cnpj.slice(12,14)}`;
-}
-
-// ── ESCONDER RESULTADOS ───────────────────────────────────────────────────────
-
-function esconderResultados() {
-    ["resultado", "link1", "link2", "botoes1", "botoes2", "tipoBadge"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = "none";
-    });
-}
-
-// ── VERIFICAR CHAVE ───────────────────────────────────────────────────────────
-
-function verificar() {
-    esconderResultados();
-
-    const chave = echave.value.replace(/[^0-9]/g, '');
-    atualizarContador();
-
-    if (chave.length < 44) return;
-    if (chave.length > 44) {
-        escreverMensagem("Chave inválida: possui mais de 44 dígitos.", "erro");
-        return;
-    }
-
-    const uf     = chave.slice(0, 2);
-    const ano    = chave.slice(2, 4);
-    const mes    = chave.slice(4, 6);
-    const cnpj   = chave.slice(6, 20);
-    const modelo = chave.slice(20, 22);
-    const serie  = chave.slice(22, 25);
-    const numero = chave.slice(25, 34);
-
-    // Validações
-    if (Number(mes) < 1 || Number(mes) > 12) {
-        escreverMensagem("Chave inválida: mês fora do intervalo (01–12).", "erro");
-        return;
-    }
-    if (!estadoNomes[uf]) {
-        escreverMensagem("Chave inválida: UF não reconhecida.", "erro");
-        return;
-    }
-    if (!["55", "59", "65"].includes(modelo)) {
-        escreverMensagem("Chave inválida: modelo de documento desconhecido.", "erro");
-        return;
-    }
-
-    // Preencher resultado
-    document.getElementById("displayestado").textContent = `${estadoNomes[uf]} (${uf})`;
-    document.getElementById("displayemissao").textContent = `${mesNome[mes] ?? mes}/20${ano}`;
-    document.getElementById("displaynumero").textContent  = String(parseInt(numero, 10));
-    document.getElementById("displaycnpj").textContent    = formatarCNPJ(cnpj);
-    document.getElementById("displaysat").textContent     = serie;
-    document.getElementById("displaymodelo").textContent  = modelo;
-
-    document.getElementById("resultado").style.display = "grid";
-
-    // Badge de tipo
-    const badge = document.getElementById("tipoBadge");
-    if (modelo === "55") {
-        badge.textContent = "● NF-e — Nota Fiscal Eletrônica";
-        badge.className = "tipo-badge tipo-nfe";
-    } else if (modelo === "59") {
-        badge.textContent = "● SAT — Cupom Fiscal Eletrônico";
-        badge.className = "tipo-badge tipo-sat";
-    } else {
-        badge.textContent = "● NFC-e — Nota Fiscal ao Consumidor";
-        badge.className = "tipo-badge tipo-nfce";
-    }
-    badge.style.display = "inline-block";
-
-    // Exibir links e botões corretos
-    if (modelo === "55") {
-        exibirResultadoNfe(universalLink, universalLink2);
-    } else if (modelo === "59") {
-        exibirResultadoSimples(satLinks[uf]);
-    } else {
-        exibirResultadoSimples(nfceLinks[uf]);
-    }
-}
-
-// ── EXIBIR RESULTADO SIMPLES (SAT / NFC-e) ───────────────────────────────────
-
-function exibirResultadoSimples(url) {
-    const linkEl = document.getElementById("link");
-    linkEl.href = url ?? "#";
-    linkEl.textContent = url ?? "Portal não mapeado para este estado.";
-
-    document.getElementById("link1").style.display   = "flex";
-    document.getElementById("botoes1").style.display = "flex";
-}
-
-// ── EXIBIR RESULTADO NF-e (dois links) ───────────────────────────────────────
-
-function exibirResultadoNfe(url1, url2) {
-    document.getElementById("link21").href        = url1;
-    document.getElementById("link21").textContent = url1;
-    document.getElementById("link22").href        = url2;
-    document.getElementById("link22").textContent = url2;
-
-    document.getElementById("link2").style.display   = "flex";
-    document.getElementById("botoes2").style.display = "flex";
-}
-
-// ── COPIAR CHAVE ──────────────────────────────────────────────────────────────
-
-async function copiarChave() {
-    const chave = echave.value.replace(/[^0-9]/g, '');
-    try {
-        await navigator.clipboard.writeText(chave);
-        escreverMensagem("✓ Chave copiada com sucesso!", "sucesso");
-    } catch {
-        escreverMensagem("Erro ao copiar. Tente manualmente.", "erro");
-    }
-}
-
-// ── ABRIR LINK + COPIAR ───────────────────────────────────────────────────────
-
-async function abrirEcopiar(url) {
-    if (!url || url === "#") return;
-    await copiarChave();
-    window.open(url, "_blank");
-}
-
-// ── EVENTOS DOS BOTÕES ────────────────────────────────────────────────────────
-
-echave.addEventListener("input", () => {
-    // Bloqueia qualquer caractere não numérico enquanto digita
-    echave.value = echave.value.replace(/[^0-9]/g, '');
-    verificar();
-});
-
-bColar.addEventListener("click", async () => {
-    try {
-        const texto = await navigator.clipboard.readText();
-        echave.value = texto.replace(/[^0-9]/g, '');
-        verificar();
-    } catch {
-        escreverMensagem("Não foi possível colar o conteúdo.", "erro");
-    }
-});
-
-document.getElementById("copiarChave").addEventListener("click", copiarChave);
-document.getElementById("copiarChave1").addEventListener("click", copiarChave);
-
-document.getElementById("abrirLink").addEventListener("click",  () => abrirEcopiar(document.getElementById("link").href));
-document.getElementById("abrirLink1").addEventListener("click", () => abrirEcopiar(document.getElementById("link21").href));
-document.getElementById("abrirLink2").addEventListener("click", () => abrirEcopiar(document.getElementById("link22").href));
-
-// ── PRÉ-PROCESSAMENTO DE IMAGEM ───────────────────────────────────────────────
-
+// --- FUNÇÃO CENTRAL DE LEITURA DE IMAGEM ---
+// --- PRÉ-PROCESSAMENTO ---
 async function preprocessarImagem(arquivo, graus = 0) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -293,37 +131,36 @@ async function preprocessarImagem(arquivo, graus = 0) {
 
         img.onload = () => {
             try {
-                const canvas = document.createElement("canvas");
+                const canvas = document.createElement('canvas');
                 const rad = graus * Math.PI / 180;
 
+                // Troca largura/altura se rotação for 90 ou 270
                 if (graus === 90 || graus === 270) {
-                    canvas.width  = img.height * 2;
-                    canvas.height = img.width  * 2;
+                    canvas.width = img.height * 2;
+                    canvas.height = img.width * 2;
                 } else {
-                    canvas.width  = img.width  * 2;
+                    canvas.width = img.width * 2;
                     canvas.height = img.height * 2;
                 }
 
-                const ctx = canvas.getContext("2d");
+                const ctx = canvas.getContext('2d');
                 ctx.translate(canvas.width / 2, canvas.height / 2);
                 ctx.rotate(rad);
                 ctx.drawImage(img, -img.width, -img.height, img.width * 2, img.height * 2);
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-                // Escala de cinza
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imageData.data;
                 for (let i = 0; i < data.length; i += 4) {
-                    const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-                    data[i] = data[i + 1] = data[i + 2] = gray;
+                    const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+                    data[i] = data[i+1] = data[i+2] = gray;
                 }
                 ctx.putImageData(imageData, 0, 0);
                 URL.revokeObjectURL(url);
-
-                canvas.toBlob(blob => {
-                    blob ? resolve(blob) : reject(new Error("Falha ao converter canvas."));
-                }, "image/png");
-
+                canvas.toBlob((blob) => {
+                    if (blob) resolve(blob);
+                    else reject(new Error("Falha ao converter canvas."));
+                }, 'image/png');
             } catch (e) { URL.revokeObjectURL(url); reject(e); }
         };
 
@@ -331,99 +168,222 @@ async function preprocessarImagem(arquivo, graus = 0) {
     });
 }
 
-// ── ENCONTRAR CHAVE NO TEXTO OCR ──────────────────────────────────────────────
-
+// --- ENCONTRAR CHAVE ---
 function encontrarChave(str) {
-    const ufsValidas   = Object.keys(estadoNomes);
+    const ufsValidas = Object.keys(estadoNomes);
     const tiposValidos = ["55", "59", "65"];
 
     for (let i = 0; i <= str.length - 44; i++) {
-        const c   = str.slice(i, i + 44);
+        const c = str.slice(i, i + 44);
         const uf  = c.slice(0, 2);
         const ano = Number(c.slice(2, 4));
         const mes = Number(c.slice(4, 6));
-        const mod = c.slice(20, 22);
+        const yy  = c.slice(20, 22);
 
         if (
-            ufsValidas.includes(uf)   &&
-            ano >= 6 && ano <= 35     &&
-            mes >= 1 && mes <= 12     &&
-            tiposValidos.includes(mod)
-        ) return c;
+            ufsValidas.includes(uf) &&
+            ano >= 6 && ano <= 30 &&
+            mes >= 1 && mes <= 12 &&
+            tiposValidos.includes(yy)
+        ) {
+            return c;
+        }
     }
     return null;
 }
 
-// ── LER NOTA (OCR) ────────────────────────────────────────────────────────────
-
-function setStatusOcr(msg, tipo = "") {
-    statusOcr.textContent = msg;
-    statusOcr.className   = "status-texto " + tipo;
-}
-
+// --- LER NOTA ---
 async function lerNota(arquivo) {
     if (!arquivo) return;
-    setStatusOcr("⏳ Lendo imagem... aguarde.", "loading");
+    statusOcr.textContent = "⏳ Lendo imagem... aguarde.";
+    statusOcr.style.color = "blue";
 
     try {
-        for (const graus of [0, 90, 180, 270]) {
-            if (graus > 0) setStatusOcr(`⏳ Tentando rotação ${graus}°...`, "loading");
+        const rotacoes = [0, 90, 180, 270];
+
+        for (const graus of rotacoes) {
+            if (graus > 0) statusOcr.textContent = `⏳ Tentando rotação ${graus}°...`;
 
             const imagemProcessada = await preprocessarImagem(arquivo, graus);
-            const result = await Tesseract.recognize(imagemProcessada, "por+eng", {
-                tessedit_pageseg_mode: "6"
+            const result = await Tesseract.recognize(imagemProcessada, 'por+eng', {
+                tessedit_pageseg_mode: '6'
             });
 
-            const chave = encontrarChave(result.data.text.replace(/[^0-9]/g, ""));
+            const chave = encontrarChave(result.data.text.replace(/[^0-9]/g, ''));
 
             if (chave) {
                 echave.value = chave;
-                verificar();
-                const msg = graus > 0
+                statusOcr.textContent = graus > 0
                     ? `✅ Chave identificada! (imagem estava ${graus}° rotacionada)`
-                    : "✅ Chave identificada com sucesso!";
-                setStatusOcr(msg, "success");
+                    : "✅ Chave identificada!";
+                statusOcr.style.color = "green";
+                verificar();
                 return;
             }
         }
 
-        setStatusOcr("❌ Não consegui ler a chave. Digite ou cole manualmente.", "error");
+        statusOcr.innerHTML = `❌ Não consegui ler a chave automaticamente.<br>
+        <small style="color:#888">Digite ou cole a chave manualmente no campo acima.</small>`;
+        statusOcr.style.color = "red";
 
     } catch (erro) {
-        console.error("Erro OCR:", erro);
-        setStatusOcr("⚠️ Erro ao processar a imagem.", "error");
+        console.error("Erro detalhado:", erro.message, erro);
+        statusOcr.textContent = "⚠️ Erro ao processar imagem.";
+        statusOcr.style.color = "orange";
     }
 }
 
-// ── DRAG & DROP ───────────────────────────────────────────────────────────────
 
-["dragover", "dragleave", "drop"].forEach(ev =>
-    dropZone.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); })
-);
-
-dropZone.addEventListener("dragover",  () => dropZone.classList.add("dragover"));
-dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
-dropZone.addEventListener("drop", e => {
-    dropZone.classList.remove("dragover");
-    lerNota(e.dataTransfer.files[0]);
+// --- ARRASTAR E SOLTAR ---
+['dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
 });
 
-inputImagem.addEventListener("change", e => lerNota(e.target.files[0]));
+dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
 
-// ── COLAR IMAGEM ──────────────────────────────────────────────────────────────
+dropZone.addEventListener('drop', (e) => {
+    dropZone.classList.remove('dragover');
+    const arquivo = e.dataTransfer.files[0];
+    lerNota(arquivo);
+});
 
-bColarImagem.addEventListener("click", async () => {
+// --- BOTÃO COLAR IMAGEM ---
+bColarImagem.onclick = async () => {
     try {
         const itens = await navigator.clipboard.read();
         for (const item of itens) {
-            if (item.types.some(t => t.startsWith("image/"))) {
-                const blob = await item.getType(item.types.find(t => t.startsWith("image/")));
+            if (item.types.some(type => type.startsWith('image/'))) {
+                const blob = await item.getType(item.types.find(t => t.startsWith('image/')));
                 lerNota(blob);
                 return;
             }
         }
-        escreverMensagem("Nenhuma imagem encontrada na área de transferência.", "erro");
-    } catch {
-        escreverMensagem("Permissão negada ao clipboard.", "erro");
+        alert("Nenhuma imagem encontrada na área de transferência.");
+    } catch (err) {
+        alert("Erro ao acessar clipboard. Tente Ctrl+V.");
     }
-});
+};
+
+// --- CLIQUE NO INPUT DE ARQUIVO ---
+inputImagem.addEventListener("change", (e) => lerNota(e.target.files[0]));
+
+// --- COLAR TEXTO ---
+bColar.onclick = async () => {
+    try {
+        const texto = await navigator.clipboard.readText();
+        echave.value = texto.replace(/[^0-9]/g, '');
+        verificar();
+    } catch (erro) {
+        alert("Não foi possível colar o conteúdo");
+    }
+}
+
+echave.addEventListener("input", () => verificar());
+
+// --- LÓGICA DE VALIDAÇÃO E REDIRECIONAMENTO ---
+function verificar() {
+    const idsParaEsconder = ["link1", "link2", "botoes1", "botoes2", "mensagem", "resultado"];
+    idsParaEsconder.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = "none";
+    });
+
+    let chave = echave.value.replace(/[^0-9]/g, '');
+
+    if (chave.length < 44) return;
+    if (chave.length > 44) {
+        escreverMensage("Chave inválida. Verifique os dígitos.");
+        return;
+    }
+
+    const uf = chave.slice(0, 2);
+    const mes = chave.slice(4, 6);
+    const ano = chave.slice(2, 4);
+    const cnpj = chave.slice(6, 20);
+    const yy = chave.slice(20, 22);
+    const sat = chave.slice(22, 25);
+    const numero = chave.slice(25, 34);
+
+    if (Number(mes) < 1 || Number(mes) > 12) {
+        escreverMensage("Chave inválida. Mês inválido.");
+        return;
+    }
+
+    if (!estadoNomes[uf]) {
+        escreverMensage("Chave inválida. UF não reconhecida.");
+        return;
+    }
+
+    if (yy === "55") {
+        exibirResultadoNfe(universalLink, universalLink2);
+    } else if (yy === "59") {
+        exibirResultadoSimples(satLinks[uf]);
+    } else if (yy === "65") {
+        exibirResultadoSimples(nfceLinks[uf]);
+    } else {
+        escreverMensage("Chave inválida. Tipo de documento desconhecido.");
+        return;
+    }
+
+    document.getElementById("displayestado").textContent = estadoNomes[uf];
+    document.getElementById("displaymes").textContent = mes;
+    document.getElementById("displayano").textContent = "20" + ano;
+    document.getElementById("displaycnpj").textContent = cnpj;
+    document.getElementById("displaysat").textContent = sat;
+    document.getElementById("displaynumero").textContent = numero;
+}
+
+// --- FUNÇÕES AUXILIARES ---
+function exibirResultadoSimples(url) {
+    document.getElementById("resultado").style.display = "grid";
+    document.getElementById("link1").style.display = "flex";
+    document.getElementById("botoes1").style.display = "flex";
+    const linkEl = document.getElementById("link");
+    linkEl.href = url;
+    linkEl.textContent = url;
+}
+
+function exibirResultadoNfe(url1, url2) {
+    document.getElementById("resultado").style.display = "grid";
+    document.getElementById("link2").style.display = "flex";
+    document.getElementById("botoes2").style.display = "flex";
+    document.getElementById("link21").href = url1;
+    document.getElementById("link21").textContent = url1;
+    document.getElementById("link22").href = url2;
+    document.getElementById("link22").textContent = url2;
+}
+
+function abrirEcopiar(url) {
+    if (!url || url === "#") return;
+    let chave = echave.value.replace(/[^0-9]/g, '');
+    navigator.clipboard.writeText(chave);
+    window.open(url, '_blank');
+}
+
+document.getElementById("abrirLink").onclick = () => abrirEcopiar(document.getElementById("link").href);
+document.getElementById("abrirLink1").onclick = () => abrirEcopiar(document.getElementById("link21").href);
+document.getElementById("abrirLink2").onclick = () => abrirEcopiar(document.getElementById("link22").href);
+
+function escreverMensage(msg) {
+    const mensagem = document.getElementById("mensagem");
+    mensagem.textContent = msg;
+    mensagem.style.display = "block";
+    setTimeout(() => { mensagem.style.display = "none"; }, 4000);
+}
+
+async function copiarChave() {
+    let chave = echave.value.replace(/[^0-9]/g, '');
+    try {
+        await navigator.clipboard.writeText(chave);
+        escreverMensage("Chave copiada com sucesso!");
+    } catch (e) {
+        escreverMensage("Erro ao copiar.");
+    }
+}
+
+document.getElementById("copiarChave").onclick = copiarChave;
+document.getElementById("copiarChave1").onclick = copiarChave;

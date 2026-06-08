@@ -309,6 +309,9 @@ function verificar() {
         return;
     }
 
+    
+    
+
     const uf = chave.slice(0, 2);
     const mes = chave.slice(4, 6);
     const ano = chave.slice(2, 4);
@@ -327,6 +330,20 @@ function verificar() {
         return;
     }
 
+if (!validarDV(chave)) {
+        escreverMensage("Chave inválida. Dígito verificador incorreto.");
+        return;
+    }
+
+     // ✅ AQUI — validação do tipo de emissão
+    const tipoEmissao = chave.slice(34, 35);
+    const tiposEmissaoValidos = ["1", "2", "3", "4", "5", "6", "7", "9"];
+    if (!tiposEmissaoValidos.includes(tipoEmissao)) {
+        escreverMensage("Chave inválida. Tipo de emissão desconhecido.");
+        return;
+    }
+    
+
     if (yy === "55") {
         exibirResultadoNfe(universalLink, universalLink2);
     } else if (yy === "59") {
@@ -338,12 +355,28 @@ function verificar() {
         return;
     }
 
+    
+
     document.getElementById("displayestado").textContent = estadoNomes[uf];
     document.getElementById("displaymes").textContent = mes;
     document.getElementById("displayano").textContent = "20" + ano;
     document.getElementById("displaycnpj").textContent = cnpj;
     document.getElementById("displaysat").textContent = sat;
     document.getElementById("displaynumero").textContent = numero;
+
+     document.getElementById("displaytiponota").textContent = 
+    yy === "55" ? "NF-e" : yy === "59" ? "SAT" : "NFC-e";
+
+    const tipoEmissaoNome = {
+    "1": "Normal",
+    "2": "Contingência FS-IA (Formulário de Segurança com IBPT Autorizado)",
+    "3": "SCAN (Sistema de Contingência do Ambiente Nacional) — descontinuado",
+    "4": "DPEC (Declaração Prévia de Emissão em Contingência) — descontinuado",
+    "5": "Contingência FS-DA (Formulário de Segurança para Impressão de DANFE)",
+    "6": "SVC-AN (SEFAZ Virtual de Contingência — Ambiente Nacional)",
+    "7": "SVC-RS (SEFAZ Virtual de Contingência — Rio Grande do Sul)",
+    "9": "Contingência Offline NFC-e"
+};
 }
 
 // --- FUNÇÕES AUXILIARES ---
@@ -396,3 +429,24 @@ async function copiarChave() {
 
 document.getElementById("copiarChave").onclick = copiarChave;
 document.getElementById("copiarChave1").onclick = copiarChave;
+
+function validarDV(chave) {
+    // Algoritmo módulo 11 da chave de acesso NF-e
+    const pesos = [2, 3, 4, 5, 6, 7, 8, 9];
+    let soma = 0;
+    const digits = chave.slice(0, 43); // 43 primeiros dígitos
+    
+    for (let i = 0; i < digits.length; i++) {
+        const peso = pesos[(digits.length - 1 - i) % 8];
+        soma += parseInt(digits[i]) * peso;
+    }
+    
+    const resto = soma % 11;
+    const dvCalculado = resto < 2 ? 0 : 11 - resto;
+    const dvInformado = parseInt(chave[43]);
+    
+    return dvCalculado === dvInformado;
+}
+
+
+

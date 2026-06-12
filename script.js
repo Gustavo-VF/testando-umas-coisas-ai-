@@ -62,52 +62,22 @@ const nfceLinks = {
 
 
 const mesNome = {
-    "01": "Jan",
-    "02": "Fev",
-    "03": "Mar",
-    "04": "Abr",
-    "05": "Mai",
-    "06": "Jun",
-    "07": "Jul",
-    "08": "Ago",
-    "09": "Set",
-    "10": "Out",
-    "11": "Nov",
-    "12": "Dez"
+    "01": "Jan", "02": "Fev", "03": "Mar", "04": "Abr",
+    "05": "Mai", "06": "Jun", "07": "Jul", "08": "Ago",
+    "09": "Set", "10": "Out", "11": "Nov", "12": "Dez"
 };
 const estadoNomes = {
-    "11": "Rondônia",
-    "12": "Acre",
-    "13": "Amazonas",
-    "14": "Roraima",
-    "15": "Pará",
-    "16": "Amapá",
-    "17": "Tocantins",
-    "21": "Maranhão",
-    "22": "Piauí",
-    "23": "Ceará",
-    "24": "Rio Grande do Norte",
-    "25": "Paraíba",
-    "26": "Pernambuco",
-    "27": "Alagoas",
-    "28": "Sergipe",
-    "29": "Bahia",
-    "31": "Minas Gerais",
-    "32": "Espírito Santo",
-    "33": "Rio de Janeiro",
-    "35": "São Paulo",
-    "41": "Paraná",
-    "42": "Santa Catarina",
-    "43": "Rio Grande do Sul",
-    "50": "Mato Grosso do Sul",
-    "51": "Mato Grosso",
-    "52": "Goiás",
-    "53": "Distrito Federal"
+    "11": "Rondônia", "12": "Acre", "13": "Amazonas", "14": "Roraima",
+    "15": "Pará", "16": "Amapá", "17": "Tocantins", "21": "Maranhão",
+    "22": "Piauí", "23": "Ceará", "24": "Rio Grande do Norte", "25": "Paraíba",
+    "26": "Pernambuco", "27": "Alagoas", "28": "Sergipe", "29": "Bahia",
+    "31": "Minas Gerais", "32": "Espírito Santo", "33": "Rio de Janeiro", "35": "São Paulo",
+    "41": "Paraná", "42": "Santa Catarina", "43": "Rio Grande do Sul",
+    "50": "Mato Grosso do Sul", "51": "Mato Grosso", "52": "Goiás", "53": "Distrito Federal"
 };
 
 // ========================================================
-
-// --- VARIÁREIS DE INTERFACE (Declarar apenas uma vez) ---
+// --- VARIÁVEIS DE INTERFACE ---
 // ========================================================
 
 const bColar = document.getElementById("bColar");
@@ -120,16 +90,14 @@ const dropZone = document.getElementById("dropZone");
 const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
 const universalLink2 = "https://meudanfe.com.br/#";
 
-// --- FUNÇÃO CENTRAL DE LEITURA DE IMAGEM ---
-// --- PRÉ-PROCESSAMENTO ---
-async function preprocessarImagem(arquivo, graus = 0) {
+// --- PRÉ-PROCESSAMENTO (multi escala / threshold) ---
+async function preprocessarImagem(arquivo, graus = 0, escala = 4, threshold = null) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(arquivo);
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Erro ao carregar imagem.")); };
     img.onload = () => {
       try {
-        const escala = 3; // aumentei de 2x pra 3x
         const canvas = document.createElement('canvas');
         const rad = graus * Math.PI / 180;
 
@@ -142,25 +110,33 @@ async function preprocessarImagem(arquivo, graus = 0) {
         }
 
         const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate(rad);
         ctx.drawImage(img, -img.width * escala / 2, -img.height * escala / 2, img.width * escala, img.height * escala);
         ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-        // 1. Pegar pixels
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
 
-        // 2. Converter pra cinza
+        // Converter pra cinza
         for (let i = 0; i < data.length; i += 4) {
           const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
           data[i] = data[i+1] = data[i+2] = gray;
         }
 
-        // 3. Binarização adaptativa simples (threshold em 128)
-        for (let i = 0; i < data.length; i += 4) {
-          const val = data[i] < 128 ? 0 : 255;
-          data[i] = data[i+1] = data[i+2] = val;
+        if (threshold !== null) {
+          let t = threshold;
+          if (t === 'dynamic') {
+            let soma = 0;
+            for (let i = 0; i < data.length; i += 4) soma += data[i];
+            t = soma / (data.length / 4);
+          }
+          for (let i = 0; i < data.length; i += 4) {
+            const val = data[i] < t ? 0 : 255;
+            data[i] = data[i+1] = data[i+2] = val;
+          }
         }
 
         ctx.putImageData(imageData, 0, 0);
@@ -207,19 +183,32 @@ async function lerCodigoBarras(arquivo) {
 
         img.onload = async () => {
             try {
-                const codeReader = new ZXing.BrowserMultiFormatReader();
+                const padding = 40;
                 const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
+                canvas.width = img.width + padding * 2;
+                canvas.height = img.height + padding * 2;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
 
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, padding, padding);
+
+                const hints = new Map();
+                hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+                    ZXing.BarcodeFormat.CODE_128,
+                    ZXing.BarcodeFormat.QR_CODE,
+                    ZXing.BarcodeFormat.EAN_13
+                ]);
+
+                const codeReader = new ZXing.BrowserMultiFormatReader(hints);
                 const result = await codeReader.decodeFromCanvas(canvas);
+
                 URL.revokeObjectURL(url);
                 resolve(result.getText().replace(/[^0-9]/g, ''));
             } catch (e) {
+                console.log("ZXing não conseguiu ler:", e.message);
                 URL.revokeObjectURL(url);
-                resolve(null); // não achou código, segue pro OCR
+                resolve(null);
             }
         };
 
@@ -232,15 +221,13 @@ async function lerCodigoBarras(arquivo) {
     });
 }
 
-
-
 // --- LER NOTA ---
 async function lerNota(arquivo) {
     if (!arquivo) return;
-    statusOcr.textContent = "⏳ Lendo imagem... aguarde.";
+    statusOcr.textContent = "⏳ Procurando código de barras/QR...";
     statusOcr.style.color = "blue";
 
- // --- TENTA CÓDIGO DE BARRAS / QR PRIMEIRO ---
+    // --- TENTA CÓDIGO DE BARRAS / QR PRIMEIRO ---
     const textoBarras = await lerCodigoBarras(arquivo);
     if (textoBarras) {
         const chaveBarras = encontrarChave(textoBarras);
@@ -255,31 +242,39 @@ async function lerNota(arquivo) {
 
     statusOcr.textContent = "⏳ Lendo imagem via OCR... aguarde.";
 
-    
-
     try {
         const rotacoes = [0, 90, 180, 270];
+        const escalas = [4, 6];
+        const thresholds = [null, 'dynamic', 128, 100, 160];
+        const psmModes = ['7', '6']; // 7 = linha única, 6 = bloco
+
+        let tentativa = 0;
+        const total = rotacoes.length * escalas.length * thresholds.length * psmModes.length;
 
         for (const graus of rotacoes) {
-            if (graus > 0) statusOcr.textContent = `⏳ Tentando rotação ${graus}°...`;
+            for (const escala of escalas) {
+                for (const threshold of thresholds) {
+                    for (const psm of psmModes) {
+                        tentativa++;
+                        statusOcr.textContent = `⏳ Tentativa ${tentativa}/${total}...`;
 
-            const imagemProcessada = await preprocessarImagem(arquivo, graus);
-           const result = await Tesseract.recognize(imagemProcessada, 'por', {
-  tessedit_pageseg_mode: '6',
-  tessedit_char_whitelist: '0123456789'
-});
-           
+                        const imagemProcessada = await preprocessarImagem(arquivo, graus, escala, threshold);
+                        const result = await Tesseract.recognize(imagemProcessada, 'por', {
+                            tessedit_pageseg_mode: psm,
+                            tessedit_char_whitelist: '0123456789'
+                        });
 
-            const chave = encontrarChave(result.data.text.replace(/[^0-9]/g, ''));
+                        const chave = encontrarChave(result.data.text.replace(/[^0-9]/g, ''));
 
-            if (chave) {
-                echave.value = chave;
-                statusOcr.textContent = graus > 0
-                    ? `✅ Chave identificada! (imagem estava ${graus}° rotacionada)`
-                    : "✅ Chave identificada!";
-                statusOcr.style.color = "green";
-                verificar();
-                return;
+                        if (chave) {
+                            echave.value = chave;
+                            statusOcr.textContent = `✅ Chave identificada! (rot:${graus}°, esc:${escala}x, t:${threshold}, psm:${psm})`;
+                            statusOcr.style.color = "green";
+                            verificar();
+                            return;
+                        }
+                    }
+                }
             }
         }
 
@@ -347,7 +342,7 @@ echave.addEventListener("input", () => verificar());
 
 // --- LÓGICA DE VALIDAÇÃO E REDIRECIONAMENTO ---
 function verificar() {
-    const idsParaEsconder = ["link1", "link2", "botoes1", "botoes2", "mensagem", "resultado"];
+    const idsParaEsconder = ["link1", "link2", "botoes1", "botoes2", "mensagem", "resultado", "avisDV"];
     idsParaEsconder.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = "none";
@@ -360,9 +355,6 @@ function verificar() {
         escreverMensage("Chave inválida. Verifique os dígitos.");
         return;
     }
-
-    
-    
 
     const uf = chave.slice(0, 2);
     const mes = chave.slice(4, 6);
@@ -382,19 +374,21 @@ function verificar() {
         return;
     }
 
-if (!validarDV(chave)) {
-        escreverMensage("Chave inválida. Dígito verificador incorreto.");
-        return;
+    // Validação do DV — não bloqueia, só avisa
+    const avisDVel = document.getElementById("avisDV");
+    if (!validarDV(chave)) {
+        if (avisDVel) avisDVel.style.display = "flex";
+    } else {
+        if (avisDVel) avisDVel.style.display = "none";
     }
 
-     // ✅ AQUI — validação do tipo de emissão
+    // Validação do tipo de emissão
     const tipoEmissao = chave.slice(34, 35);
     const tiposEmissaoValidos = ["1", "2", "3", "4", "5", "6", "7", "9"];
     if (!tiposEmissaoValidos.includes(tipoEmissao)) {
         escreverMensage("Chave inválida. Tipo de emissão desconhecido.");
         return;
     }
-    
 
     if (yy === "55") {
         exibirResultadoNfe(universalLink, universalLink2);
@@ -407,8 +401,6 @@ if (!validarDV(chave)) {
         return;
     }
 
-    
-
     document.getElementById("displayestado").textContent = estadoNomes[uf];
     document.getElementById("displaymes").textContent = mes;
     document.getElementById("displayano").textContent = "20" + ano;
@@ -416,19 +408,22 @@ if (!validarDV(chave)) {
     document.getElementById("displaysat").textContent = sat;
     document.getElementById("displaynumero").textContent = numero;
 
-     document.getElementById("displaytiponota").textContent = 
-    yy === "55" ? "NF-e" : yy === "59" ? "SAT" : "NFC-e";
+    document.getElementById("displaytiponota").textContent =
+        yy === "55" ? "NF-e" : yy === "59" ? "SAT" : "NFC-e";
 
     const tipoEmissaoNome = {
-    "1": "Normal",
-    "2": "Contingência FS-IA (Formulário de Segurança com IBPT Autorizado)",
-    "3": "SCAN (Sistema de Contingência do Ambiente Nacional) — descontinuado",
-    "4": "DPEC (Declaração Prévia de Emissão em Contingência) — descontinuado",
-    "5": "Contingência FS-DA (Formulário de Segurança para Impressão de DANFE)",
-    "6": "SVC-AN (SEFAZ Virtual de Contingência — Ambiente Nacional)",
-    "7": "SVC-RS (SEFAZ Virtual de Contingência — Rio Grande do Sul)",
-    "9": "Contingência Offline NFC-e"
-};
+        "1": "Normal",
+        "2": "Contingência FS-IA (Formulário de Segurança com IBPT Autorizado)",
+        "3": "SCAN (Sistema de Contingência do Ambiente Nacional) — descontinuado",
+        "4": "DPEC (Declaração Prévia de Emissão em Contingência) — descontinuado",
+        "5": "Contingência FS-DA (Formulário de Segurança para Impressão de DANFE)",
+        "6": "SVC-AN (SEFAZ Virtual de Contingência — Ambiente Nacional)",
+        "7": "SVC-RS (SEFAZ Virtual de Contingência — Rio Grande do Sul)",
+        "9": "Contingência Offline NFC-e"
+    };
+
+    const elEmissao = document.getElementById("displayemissao");
+    if (elEmissao) elEmissao.textContent = tipoEmissaoNome[tipoEmissao];
 }
 
 // --- FUNÇÕES AUXILIARES ---
@@ -483,22 +478,18 @@ document.getElementById("copiarChave").onclick = copiarChave;
 document.getElementById("copiarChave1").onclick = copiarChave;
 
 function validarDV(chave) {
-    // Algoritmo módulo 11 da chave de acesso NF-e
     const pesos = [2, 3, 4, 5, 6, 7, 8, 9];
     let soma = 0;
-    const digits = chave.slice(0, 43); // 43 primeiros dígitos
-    
+    const digits = chave.slice(0, 43);
+
     for (let i = 0; i < digits.length; i++) {
         const peso = pesos[(digits.length - 1 - i) % 8];
         soma += parseInt(digits[i]) * peso;
     }
-    
+
     const resto = soma % 11;
     const dvCalculado = resto < 2 ? 0 : 11 - resto;
     const dvInformado = parseInt(chave[43]);
-    
+
     return dvCalculado === dvInformado;
 }
-
-
-

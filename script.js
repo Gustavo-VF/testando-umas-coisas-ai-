@@ -240,43 +240,68 @@ async function lerNota(arquivo) {
         }
     }
 
-    statusOcr.textContent = "⏳ Lendo imagem via OCR... aguarde.";
+   statusOcr.textContent = "⏳ Lendo imagem via OCR... aguarde.";
 
-    try {
-        const rotacoes = [0, 90, 180, 270];
-        const escalas = [4, 5];
-        const thresholds = [null, 'dynamic', 128];
-        const psmModes = ['7', '6']; // 7 = linha única, 6 = bloco
+try {
+    const rotacoes = [0, 90, 180, 270];
+    const escalas = [4, 6];
+    const thresholds = [null, 'dynamic', 128, 100, 160];
+    const psmModes = ['7', '6'];
 
-        let tentativa = 0;
-        const total = rotacoes.length * escalas.length * thresholds.length * psmModes.length;
-
-        for (const graus of rotacoes) {
-            for (const escala of escalas) {
-                for (const threshold of thresholds) {
-                    for (const psm of psmModes) {
-                        tentativa++;
-                        statusOcr.textContent = `⏳ Tentativa ${tentativa}/${total}...`;
-
-                        const imagemProcessada = await preprocessarImagem(arquivo, graus, escala, threshold);
-                        const result = await Tesseract.recognize(imagemProcessada, 'por', {
-                            tessedit_pageseg_mode: psm,
-                            tessedit_char_whitelist: '0123456789'
-                        });
-
-                        const chave = encontrarChave(result.data.text.replace(/[^0-9]/g, ''));
-
-                        if (chave) {
-                            echave.value = chave;
-                            statusOcr.textContent = `✅ Chave identificada! (rot:${graus}°, esc:${escala}x, t:${threshold}, psm:${psm})`;
-                            statusOcr.style.color = "green";
-                            verificar();
-                            return;
-                        }
-                    }
+    // Monta todas as combinações
+    const combinacoes = [];
+    for (const graus of rotacoes) {
+        for (const escala of escalas) {
+            for (const threshold of thresholds) {
+                for (const psm of psmModes) {
+                    combinacoes.push({ graus, escala, threshold, psm });
                 }
             }
         }
+    }
+
+    const PARALELO = 5; // 5 tentativas simultâneas
+    let encontrada = null;
+
+    for (let i = 0; i < combinacoes.length; i += PARALELO) {
+        const lote = combinacoes.slice(i, i + PARALELO);
+        statusOcr.textContent = `⏳ Tentativas ${i + 1}-${i + lote.length} de ${combinacoes.length}...`;
+
+        const resultados = await Promise.all(lote.map(async ({ graus, escala, threshold, psm }) => {
+            try {
+                const imagemProcessada = await preprocessarImagem(arquivo, graus, escala, threshold);
+                const result = await Tesseract.recognize(imagemProcessada, 'por', {
+                    tessedit_pageseg_mode: psm,
+                    tessedit_char_whitelist: '0123456789'
+                });
+                const chave = encontrarChave(result.data.text.replace(/[^0-9]/g, ''));
+                return chave ? { chave, graus, escala, threshold, psm } : null;
+            } catch {
+                return null;
+            }
+        }));
+
+        encontrada = resultados.find(r => r !== null);
+        if (encontrada) break;
+    }
+
+    if (encontrada) {
+        echave.value = encontrada.chave;
+        statusOcr.textContent = `✅ Chave identificada! (rot:${encontrada.graus}°, esc:${encontrada.escala}x, t:${encontrada.threshold}, psm:${encontrada.psm})`;
+        statusOcr.style.color = "green";
+        verificar();
+        return;
+    }
+
+    statusOcr.innerHTML = `❌ Não consegui ler a chave automaticamente.<br>
+    <small style="color:#888">Digite ou cole a chave manualmente no campo acima.</small>`;
+    statusOcr.style.color = "red";
+
+} catch (erro) {
+    console.error("Erro detalhado:", erro.message, erro);
+    statusOcr.textContent = "⚠️ Erro ao processar imagem.";
+    statusOcr.style.color = "orange";
+}
 
         statusOcr.innerHTML = `❌ Não consegui ler a chave automaticamente.<br>
         <small style="color:#888">Digite ou cole a chave manualmente no campo acima.</small>`;

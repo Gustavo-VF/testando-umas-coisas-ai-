@@ -293,15 +293,7 @@ try {
         return;
     }
 
-    statusOcr.innerHTML = `❌ Não consegui ler a chave automaticamente.<br>
-    <small style="color:#888">Digite ou cole a chave manualmente no campo acima.</small>`;
-    statusOcr.style.color = "red";
-
-} catch (erro) {
-    console.error("Erro detalhado:", erro.message, erro);
-    statusOcr.textContent = "⚠️ Erro ao processar imagem.";
-    statusOcr.style.color = "orange";
-}
+   
 
         statusOcr.innerHTML = `❌ Não consegui ler a chave automaticamente.<br>
         <small style="color:#888">Digite ou cole a chave manualmente no campo acima.</small>`;

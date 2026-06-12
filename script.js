@@ -199,11 +199,63 @@ function encontrarChave(str) {
     return null;
 }
 
+// --- TENTAR LER CÓDIGO DE BARRAS / QR CODE ---
+async function lerCodigoBarras(arquivo) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(arquivo);
+
+        img.onload = async () => {
+            try {
+                const codeReader = new ZXing.BrowserMultiFormatReader();
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                const result = await codeReader.decodeFromCanvas(canvas);
+                URL.revokeObjectURL(url);
+                resolve(result.getText().replace(/[^0-9]/g, ''));
+            } catch (e) {
+                URL.revokeObjectURL(url);
+                resolve(null); // não achou código, segue pro OCR
+            }
+        };
+
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            resolve(null);
+        };
+
+        img.src = url;
+    });
+}
+
+
+
 // --- LER NOTA ---
 async function lerNota(arquivo) {
     if (!arquivo) return;
     statusOcr.textContent = "⏳ Lendo imagem... aguarde.";
     statusOcr.style.color = "blue";
+
+ // --- TENTA CÓDIGO DE BARRAS / QR PRIMEIRO ---
+    const textoBarras = await lerCodigoBarras(arquivo);
+    if (textoBarras) {
+        const chaveBarras = encontrarChave(textoBarras);
+        if (chaveBarras) {
+            echave.value = chaveBarras;
+            statusOcr.textContent = "✅ Chave identificada via código de barras/QR!";
+            statusOcr.style.color = "green";
+            verificar();
+            return;
+        }
+    }
+
+    statusOcr.textContent = "⏳ Lendo imagem via OCR... aguarde.";
+
+    
 
     try {
         const rotacoes = [0, 90, 180, 270];

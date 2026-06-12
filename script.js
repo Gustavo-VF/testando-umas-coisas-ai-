@@ -244,8 +244,8 @@ async function lerNota(arquivo) {
 
     try {
         const rotacoes = [0, 90, 180, 270];
-        const escalas = [4, 6];
-        const thresholds = [null, 'dynamic', 128, 100, 160];
+        const escalas = [4, 5];
+        const thresholds = [null, 'dynamic', 128];
         const psmModes = ['7', '6']; // 7 = linha única, 6 = bloco
 
         let tentativa = 0;

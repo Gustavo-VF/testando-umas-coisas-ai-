@@ -60,12 +60,12 @@ const nfceLinks = {
     "53": "https://ww1.receita.fazenda.df.gov.br/servicos"
 };
 
-
 const mesNome = {
     "01": "Jan", "02": "Fev", "03": "Mar", "04": "Abr",
     "05": "Mai", "06": "Jun", "07": "Jul", "08": "Ago",
     "09": "Set", "10": "Out", "11": "Nov", "12": "Dez"
 };
+
 const estadoNomes = {
     "11": "Rondônia", "12": "Acre", "13": "Amazonas", "14": "Roraima",
     "15": "Pará", "16": "Amapá", "17": "Tocantins", "21": "Maranhão",
@@ -90,68 +90,72 @@ const dropZone = document.getElementById("dropZone");
 const universalLink = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ%20gAVw2g=";
 const universalLink2 = "https://meudanfe.com.br/#";
 
+// ========================================================
 // --- PRÉ-PROCESSAMENTO (multi escala / threshold) ---
+// ========================================================
 async function preprocessarImagem(arquivo, graus = 0, escala = 4, threshold = null) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(arquivo);
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Erro ao carregar imagem.")); };
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        const rad = graus * Math.PI / 180;
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(arquivo);
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Erro ao carregar imagem.")); };
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                const rad = graus * Math.PI / 180;
 
-        if (graus === 90 || graus === 270) {
-          canvas.width = img.height * escala;
-          canvas.height = img.width * escala;
-        } else {
-          canvas.width = img.width * escala;
-          canvas.height = img.height * escala;
-        }
+                if (graus === 90 || graus === 270) {
+                    canvas.width = img.height * escala;
+                    canvas.height = img.width * escala;
+                } else {
+                    canvas.width = img.width * escala;
+                    canvas.height = img.height * escala;
+                }
 
-        const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(rad);
-        ctx.drawImage(img, -img.width * escala / 2, -img.height * escala / 2, img.width * escala, img.height * escala);
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(rad);
+                ctx.drawImage(img, -img.width * escala / 2, -img.height * escala / 2, img.width * escala, img.height * escala);
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
 
-        // Converter pra cinza
-        for (let i = 0; i < data.length; i += 4) {
-          const gray = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-          data[i] = data[i+1] = data[i+2] = gray;
-        }
+                // Converter pra cinza
+                for (let i = 0; i < data.length; i += 4) {
+                    const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                    data[i] = data[i + 1] = data[i + 2] = gray;
+                }
 
-        if (threshold !== null) {
-          let t = threshold;
-          if (t === 'dynamic') {
-            let soma = 0;
-            for (let i = 0; i < data.length; i += 4) soma += data[i];
-            t = soma / (data.length / 4);
-          }
-          for (let i = 0; i < data.length; i += 4) {
-            const val = data[i] < t ? 0 : 255;
-            data[i] = data[i+1] = data[i+2] = val;
-          }
-        }
+                if (threshold !== null) {
+                    let t = threshold;
+                    if (t === 'dynamic') {
+                        let soma = 0;
+                        for (let i = 0; i < data.length; i += 4) soma += data[i];
+                        t = soma / (data.length / 4);
+                    }
+                    for (let i = 0; i < data.length; i += 4) {
+                        const val = data[i] < t ? 0 : 255;
+                        data[i] = data[i + 1] = data[i + 2] = val;
+                    }
+                }
 
-        ctx.putImageData(imageData, 0, 0);
-        URL.revokeObjectURL(url);
-        canvas.toBlob((blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error("Falha ao converter canvas."));
-        }, 'image/png');
-      } catch (e) { URL.revokeObjectURL(url); reject(e); }
-    };
-    img.src = url;
-  });
+                ctx.putImageData(imageData, 0, 0);
+                URL.revokeObjectURL(url);
+                canvas.toBlob((blob) => {
+                    if (blob) resolve(blob);
+                    else reject(new Error("Falha ao converter canvas."));
+                }, 'image/png');
+            } catch (e) { URL.revokeObjectURL(url); reject(e); }
+        };
+        img.src = url;
+    });
 }
 
+// ========================================================
 // --- ENCONTRAR CHAVE ---
+// ========================================================
 function encontrarChave(str) {
     const ufsValidas = Object.keys(estadoNomes);
     const tiposValidos = ["55", "59", "65"];
@@ -175,7 +179,9 @@ function encontrarChave(str) {
     return null;
 }
 
+// ========================================================
 // --- TENTAR LER CÓDIGO DE BARRAS / QR CODE ---
+// ========================================================
 async function lerCodigoBarras(arquivo) {
     return new Promise((resolve) => {
         const img = new Image();
@@ -206,7 +212,6 @@ async function lerCodigoBarras(arquivo) {
                 URL.revokeObjectURL(url);
                 resolve(result.getText().replace(/[^0-9]/g, ''));
             } catch (e) {
-                console.log("ZXing não conseguiu ler:", e.message);
                 URL.revokeObjectURL(url);
                 resolve(null);
             }
@@ -221,7 +226,49 @@ async function lerCodigoBarras(arquivo) {
     });
 }
 
+// ========================================================
+// --- VOTAÇÃO POR DÍGITO ENTRE VÁRIAS LEITURAS ---
+// ========================================================
+function votarChave(candidatas) {
+    // candidatas: array de strings de 44 dígitos
+    if (candidatas.length === 0) return null;
+    if (candidatas.length === 1) return candidatas[0];
+
+    let resultado = "";
+    for (let pos = 0; pos < 44; pos++) {
+        const contagem = {};
+        for (const c of candidatas) {
+            const d = c[pos];
+            contagem[d] = (contagem[d] || 0) + 1;
+        }
+        // pega o dígito mais votado nessa posição
+        let melhorDigito = candidatas[0][pos];
+        let melhorContagem = -1;
+        for (const [digito, qtd] of Object.entries(contagem)) {
+            if (qtd > melhorContagem) {
+                melhorContagem = qtd;
+                melhorDigito = digito;
+            }
+        }
+        resultado += melhorDigito;
+    }
+    return resultado;
+}
+
+function chaveMaisFrequente(candidatas) {
+    const contagem = {};
+    for (const c of candidatas) contagem[c] = (contagem[c] || 0) + 1;
+    let melhor = candidatas[0];
+    let melhorQtd = -1;
+    for (const [chave, qtd] of Object.entries(contagem)) {
+        if (qtd > melhorQtd) { melhorQtd = qtd; melhor = chave; }
+    }
+    return melhor;
+}
+
+// ========================================================
 // --- LER NOTA ---
+// ========================================================
 async function lerNota(arquivo) {
     if (!arquivo) return;
     statusOcr.textContent = "⏳ Procurando código de barras/QR...";
@@ -240,64 +287,84 @@ async function lerNota(arquivo) {
         }
     }
 
-   statusOcr.textContent = "⏳ Lendo imagem via OCR... aguarde.";
+    statusOcr.textContent = "⏳ Lendo imagem via OCR... aguarde.";
 
-try {
-    const rotacoes = [0, 90, 180, 270];
-    const escalas = [4, 6];
-    const thresholds = [null, 'dynamic', 128, 100, 160];
-    const psmModes = ['7', '6'];
+    try {
+        const rotacoes = [0, 90, 180, 270];
+        const escalas = [4, 6];
+        const thresholds = [null, 'dynamic', 128, 100, 160];
+        const psmModes = ['7', '6']; // 7 = linha única, 6 = bloco
 
-    // Monta todas as combinações
-    const combinacoes = [];
-    for (const graus of rotacoes) {
-        for (const escala of escalas) {
-            for (const threshold of thresholds) {
-                for (const psm of psmModes) {
-                    combinacoes.push({ graus, escala, threshold, psm });
+        // Monta todas as combinações
+        const combinacoes = [];
+        for (const graus of rotacoes) {
+            for (const escala of escalas) {
+                for (const threshold of thresholds) {
+                    for (const psm of psmModes) {
+                        combinacoes.push({ graus, escala, threshold, psm });
+                    }
                 }
             }
         }
-    }
 
-    const PARALELO = 5; // 5 tentativas simultâneas
-    let encontrada = null;
+        const PARALELO = 5; // tentativas simultâneas
+        const candidatas = []; // todas as chaves de 44 dígitos encontradas
 
-    for (let i = 0; i < combinacoes.length; i += PARALELO) {
-        const lote = combinacoes.slice(i, i + PARALELO);
-        statusOcr.textContent = `⏳ Tentativas ${i + 1}-${i + lote.length} de ${combinacoes.length}...`;
+        for (let i = 0; i < combinacoes.length; i += PARALELO) {
+            const lote = combinacoes.slice(i, i + PARALELO);
+            statusOcr.textContent = `⏳ Tentativas ${i + 1}-${i + lote.length} de ${combinacoes.length}...`;
 
-        const resultados = await Promise.all(lote.map(async ({ graus, escala, threshold, psm }) => {
-            try {
-                const imagemProcessada = await preprocessarImagem(arquivo, graus, escala, threshold);
-                const result = await Tesseract.recognize(imagemProcessada, 'por', {
-                    tessedit_pageseg_mode: psm,
-                    tessedit_char_whitelist: '0123456789'
-                });
-                const chave = encontrarChave(result.data.text.replace(/[^0-9]/g, ''));
-                return chave ? { chave, graus, escala, threshold, psm } : null;
-            } catch {
-                return null;
+            const resultados = await Promise.all(lote.map(async ({ graus, escala, threshold, psm }) => {
+                try {
+                    const imagemProcessada = await preprocessarImagem(arquivo, graus, escala, threshold);
+                    const result = await Tesseract.recognize(imagemProcessada, 'por', {
+                        tessedit_pageseg_mode: psm,
+                        tessedit_char_whitelist: '0123456789'
+                    });
+                    return encontrarChave(result.data.text.replace(/[^0-9]/g, ''));
+                } catch {
+                    return null;
+                }
+            }));
+
+            resultados.forEach(c => { if (c) candidatas.push(c); });
+
+            // Se já temos pelo menos 3 candidatas e uma delas já bate o DV, podemos parar mais cedo
+            if (candidatas.length >= 3) {
+                const votada = votarChave(candidatas);
+                if (validarDV(votada)) break;
             }
-        }));
+        }
 
-        encontrada = resultados.find(r => r !== null);
-        if (encontrada) break;
-    }
+        if (candidatas.length === 0) {
+            statusOcr.innerHTML = `❌ Não consegui ler a chave automaticamente.<br>
+            <small style="color:#888">Digite ou cole a chave manualmente no campo acima.</small>`;
+            statusOcr.style.color = "red";
+            return;
+        }
 
-    if (encontrada) {
-        echave.value = encontrada.chave;
-        statusOcr.textContent = `✅ Chave identificada! (rot:${encontrada.graus}°, esc:${encontrada.escala}x, t:${encontrada.threshold}, psm:${encontrada.psm})`;
-        statusOcr.style.color = "green";
+        // --- Votação por posição entre todas as candidatas ---
+        let chaveFinal = votarChave(candidatas);
+        let metodo = "votação";
+
+        if (!validarDV(chaveFinal)) {
+            // Se a votação não bater no DV, tenta a chave mais frequente (modo)
+            const moda = chaveMaisFrequente(candidatas);
+            if (validarDV(moda)) {
+                chaveFinal = moda;
+                metodo = "chave mais frequente";
+            } else {
+                metodo = "votação (DV não confirmado)";
+            }
+        }
+
+        echave.value = chaveFinal;
+        const status = validarDV(chaveFinal)
+            ? `✅ Chave identificada! (${candidatas.length} leituras, ${metodo}, DV ok)`
+            : `⚠️ Chave identificada, mas DV não confere (${candidatas.length} leituras, ${metodo})`;
+        statusOcr.textContent = status;
+        statusOcr.style.color = validarDV(chaveFinal) ? "green" : "orange";
         verificar();
-        return;
-    }
-
-   
-
-        statusOcr.innerHTML = `❌ Não consegui ler a chave automaticamente.<br>
-        <small style="color:#888">Digite ou cole a chave manualmente no campo acima.</small>`;
-        statusOcr.style.color = "red";
 
     } catch (erro) {
         console.error("Erro detalhado:", erro.message, erro);
@@ -307,7 +374,9 @@ try {
 }
 
 
+// ========================================================
 // --- ARRASTAR E SOLTAR ---
+// ========================================================
 ['dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, (e) => {
         e.preventDefault();
@@ -357,7 +426,9 @@ bColar.onclick = async () => {
 
 echave.addEventListener("input", () => verificar());
 
+// ========================================================
 // --- LÓGICA DE VALIDAÇÃO E REDIRECIONAMENTO ---
+// ========================================================
 function verificar() {
     const idsParaEsconder = ["link1", "link2", "botoes1", "botoes2", "mensagem", "resultado", "avisDV"];
     idsParaEsconder.forEach(id => {
@@ -419,7 +490,7 @@ function verificar() {
     }
 
     document.getElementById("displayestado").textContent = estadoNomes[uf];
-    document.getElementById("displaymes").textContent = mes;
+    document.getElementById("displaymes").textContent = mesNome[mes] || mes;
     document.getElementById("displayano").textContent = "20" + ano;
     document.getElementById("displaycnpj").textContent = cnpj;
     document.getElementById("displaysat").textContent = sat;
@@ -443,7 +514,9 @@ function verificar() {
     if (elEmissao) elEmissao.textContent = tipoEmissaoNome[tipoEmissao];
 }
 
+// ========================================================
 // --- FUNÇÕES AUXILIARES ---
+// ========================================================
 function exibirResultadoSimples(url) {
     document.getElementById("resultado").style.display = "grid";
     document.getElementById("link1").style.display = "flex";
@@ -494,7 +567,12 @@ async function copiarChave() {
 document.getElementById("copiarChave").onclick = copiarChave;
 document.getElementById("copiarChave1").onclick = copiarChave;
 
+// ========================================================
+// --- VALIDAÇÃO DO DÍGITO VERIFICADOR (módulo 11) ---
+// ========================================================
 function validarDV(chave) {
+    if (!chave || chave.length !== 44) return false;
+
     const pesos = [2, 3, 4, 5, 6, 7, 8, 9];
     let soma = 0;
     const digits = chave.slice(0, 43);
